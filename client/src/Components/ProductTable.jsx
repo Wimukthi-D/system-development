@@ -66,49 +66,34 @@ function Row({ row, isOpen, onExpand }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     let newValue = value;
-    let newErrors = { ...errors };
-  
-    // Validation logic
-    switch (name) {
-      case "drugName":
-        if (!/^[a-zA-Z\s]+$/.test(newValue)) {
-          newErrors[name] = "Drug name must contain only letters and spaces";
-        } else {
-          newErrors[name] = "";
-        }
-        break;
-      case "restock_level":
-        if (!/^\d+$/.test(newValue)) {
-          newErrors[name] = "Restock level must be a number";
-        } else {
-          newErrors[name] = "";
-        }
-        break;
-      // Add validation cases for other fields as needed
-      default:
-        break;
-    }
-  
+    if (name === "drugName" || name === "genericName" || name === "categoryName") {
+      newValue = newValue.slice(0, 20); // Limit to 20 characters
+      newValue = newValue.replace(/[0-9]/g, ""); // Allow only alphabets
+    } else if (name === "restock_level") {
+      newValue = newValue.slice(0, 10);
+      newValue = newValue.replace(/[^0-9]/g, ""); // Allow only numbers
+    } else if (name === "Description") {
+      newValue = newValue.slice(0, 100); // Limit to 100 characters
+    }  
     setproductData({ ...productData, [name]: newValue });
-    setErrors(newErrors);
+    setErrors({ ...errors, [name]: "" }); // Clear the error when input changes
   };
   
 
   const validateForm = () => {
     const errors = {};
-    if (!productData.drugName || !productData.drugName.trim()) {
+    if (!productData.drugName.trim()) {
       errors.drugName = "Drug Name is required";
     }
-    if (!productData.genericName || !productData.genericName.trim()) {
+    if (!productData.genericName.trim()) {
       errors.genericName = "Generic Name is required";
     }
-    if (!productData.categoryName || !productData.categoryName.trim()) {
+    if (!productData.categoryName.trim()) {
       errors.categoryName = "Category Name is required";
     }
-    if (!productData.restock_level || !productData.restock_level.trim()) {
+    if (!productData.restock_level.trim()) {
       errors.restock_level = "Restock Level is required";
     }
-
     setErrors(errors);
     return Object.keys(errors).length === 0; // Return true if there are no errors
   };
@@ -124,8 +109,9 @@ function Row({ row, isOpen, onExpand }) {
           confirmButtonText: "Yes, update it!",
           cancelButtonText: "Cancel",
         });
-
+  
         if (confirmed.isConfirmed) {
+          console.log("Updating product with data:", productData); // Debugging log
           const response = await fetch(
             `http://localhost:3001/api/stock/updateProduct/${row.id}`,
             {
@@ -136,7 +122,7 @@ function Row({ row, isOpen, onExpand }) {
               body: JSON.stringify(productData),
             }
           );
-
+  
           if (response.ok) {
             // Product updated successfully
             const data = await response.json();
@@ -172,7 +158,8 @@ function Row({ row, isOpen, onExpand }) {
             });
           } else {
             // Other server-side error
-            console.error("Failed to Update Product");
+            const errorResponse = await response.json();
+            console.error("Failed to Update Product:", errorResponse);
             Swal.fire({
               icon: "error",
               title: "Product Updating Failed",
@@ -205,6 +192,7 @@ function Row({ row, isOpen, onExpand }) {
       }
     }
   };
+  
 
   const handleDelete = async () => {
     try {
@@ -315,7 +303,7 @@ function Row({ row, isOpen, onExpand }) {
                     variant="standard"
                     label="Drug Name"
                     value={productData.drugName}
-                    name="DrugName"
+                    name="drugName"
                     onChange={handleChange}
                     error={Boolean(errors.drugName)}
                     helperText={errors.drugName}
@@ -324,7 +312,7 @@ function Row({ row, isOpen, onExpand }) {
                     variant="standard"
                     label="Generic Name"
                     value={productData.genericName}
-                    name="GenericName"
+                    name="genericName"
                     onChange={handleChange}
                     error={Boolean(errors.genericName)}
                     helperText={errors.genericName}
@@ -334,7 +322,7 @@ function Row({ row, isOpen, onExpand }) {
                     label="Category"
                     value={productData.categoryName}
                     style={{ width: "120px" }}
-                    name="CategoryName"
+                    name="categoryName"
                     onChange={handleChange}
                     error={Boolean(errors.categoryName)}
                     helperText={errors.categoryName}
@@ -344,7 +332,7 @@ function Row({ row, isOpen, onExpand }) {
                     label="Restock Level"
                     value={productData.restock_level}
                     style={{ width: "120px" }}
-                    name="RestockLevel"
+                    name="restock_level"
                     type="number"
                     onChange={handleChange}
                     error={Boolean(errors.restock_level)}
