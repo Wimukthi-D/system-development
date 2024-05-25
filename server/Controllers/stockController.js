@@ -221,18 +221,23 @@ router.delete('/deleteStock/:id', async (req, res) => {
 
     router.put('/updateProduct/:id', async (req, res) => {
         const productId = req.params.id;
-        const { drugname, genericname, restock_level, categoryName, description } = req.body;
+        const { drugName, genericName, categoryName, genericID, categoryID, restock_level, Description } = req.body;
     
         try {
-            // Check if the product already exists
+            // Check if the product already exists, excluding the current product being updated
             const existingProduct = await new Promise((resolve, reject) => {
-                connection.query('SELECT * FROM products WHERE drugname = ? AND genericname = ?', [drugname, genericname], (err, result) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(result[0]);
+                connection.query(
+                    'SELECT * FROM product p JOIN generic g ON p.genericID = g.genericID WHERE drugname = ? AND genericName = ? AND productId != ?',
+                    [drugName, genericName, productId],
+                    (err, result) => {
+                        if (err) {
+                            console.error('Error checking existing product:', err);
+                            reject(err);
+                        } else {
+                            resolve(result[0]);
+                        }
                     }
-                });
+                );
             });
     
             if (existingProduct) {
@@ -240,21 +245,85 @@ router.delete('/deleteStock/:id', async (req, res) => {
                 return res.status(400).json({ error: 'Product already exists' });
             }
     
-            // Update the product
-            connection.query('UPDATE products SET drugname = ?, genericname = ?, restock_level = ?, categoryName = ?, description = ? WHERE productId = ?', [drugname, genericname, restock_level, categoryName, description, productId], (err, result) => {
+            // Start a transaction
+            connection.beginTransaction(async (err) => {
                 if (err) {
-                    console.error('Error updating product:', err);
-                    res.status(500).send('Internal Server Error');
-                    return;
+                    throw err;
                 }
     
-                res.status(200).json({ message: 'Product updated successfully', productId });
+                try {
+                    // Log values for debugging
+                    console.log('Updating generic table with:', { genericName, genericID });
+                    console.log('Updating category table with:', { categoryName, categoryID });
+                    console.log('Updating product table with:', { drugName, genericID, categoryID, restock_level, Description, productId });
+    
+                    // Update the generic table
+                    await new Promise((resolve, reject) => {
+                        connection.query(
+                            'UPDATE generic SET genericName = ? WHERE genericID = ?',
+                            [genericName, genericID],
+                            (err, result) => {
+                                if (err) {
+                                    return reject(err);
+                                }
+                                resolve(result);
+                            }
+                        );
+                    });
+    
+                    // Update the category table
+                    await new Promise((resolve, reject) => {
+                        connection.query(
+                            'UPDATE category SET categoryName = ? WHERE categoryID = ?',
+                            [categoryName, categoryID],
+                            (err, result) => {
+                                if (err) {
+                                    return reject(err);
+                                }
+                                resolve(result);
+                            }
+                        );
+                    });
+    
+                    // Update the product table
+                    await new Promise((resolve, reject) => {
+                        connection.query(
+                            'UPDATE product SET drugname = ?, genericID = ?, categoryID = ?, restock_level = ?, Description = ? WHERE productId = ?',
+                            [drugName, genericID, categoryID, restock_level, Description, productId],
+                            (err, result) => {
+                                if (err) {
+                                    return reject(err);
+                                }
+                                resolve(result);
+                            }
+                        );
+                    });
+    
+                    // Commit the transaction
+                    connection.commit((err) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                throw err;
+                            });
+                        }
+                        res.status(200).json({ message: 'Product updated successfully', productId });
+                    });
+                } catch (err) {
+                    connection.rollback(() => {
+                        console.error('Error in update product transaction:', err);
+                        res.status(500).json({ error: 'An error occurred while updating the product' });
+                    });
+                }
             });
         } catch (err) {
-            console.error('Error updating product:', err);
+            console.error('Error in update product route:', err);
             res.status(500).json({ error: 'An error occurred while updating the product' });
         }
     });
+    
+    
+    
+    
     
     
     router.delete('/deleteProduct/:id', async (req, res) => {
