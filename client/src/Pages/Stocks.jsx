@@ -22,6 +22,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
+import Navbar from "../Components/Navbar";
 
 function InputField({ placeholder }) {
   return (
@@ -276,8 +277,10 @@ function Stocks() {
   return (
     <div className="flex flex-col bg-[#EDEDED]">
       <div className=" flex flex-col bg-[#F7F7F7] ">
-        <div className="flex  w-screen overflow-y-auto">
+      <Navbar/>
+        <div className="flex  w-screen h-screen overflow-y-auto">
           <div className="flex-col w-full">
+            
             <div className="flex justify-between mt-10 mx-10">
               <div className="flex ">
                 <div className="bg-white border p-1 flex items-center rounded-xl">

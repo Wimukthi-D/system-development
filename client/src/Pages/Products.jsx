@@ -14,6 +14,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import { styled } from "@mui/system";
 import Stack from "@mui/material/Stack";
 import Autocomplete from "@mui/material/Autocomplete";
+import Navbar from "../Components/Navbar";
 
 function InputField({ placeholder }) {
   return (
@@ -216,6 +217,7 @@ function Products() {
   return (
     <div className="flex flex-col bg-[#EDEDED]">
       <div className=" flex flex-col bg-[#F7F7F7] ">
+        <Navbar />
         <div className="flex  w-screen overflow-y-auto">
           <div className="flex-col w-full">
             <div className="flex justify-between mt-10 mx-10">
