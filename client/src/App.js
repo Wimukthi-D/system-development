@@ -83,7 +83,7 @@ function App() {
   return (
     <Router>
       <div>
-        <ConditionalSideBar />
+        <ConditionalNavBar />
         <div>
           <Routes>
             {RenderProtectedRoutes(UserType, isAuthenticated)}
@@ -114,24 +114,34 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
               <Route exact path="/manager-dashboard" element={<Analysis />} />
               <Route
                 exact
-                path="/admin-dashboard/staffmanage"
+                path="/manager-dashboard/staffmanage"
                 element={<Staffmanage />}
               />
               <Route
                 exact
-                path="/admin-dashboard/products"
+                path="/manager-dashboard/products"
                 element={<Products />}
               />
               <Route
                 exact
-                path="/admin-dashboard/stocks"
+                path="/manager-dashboard/stocks"
                 element={<Stocks />}
+              />
+              <Route
+                exact
+                path="/manager-dashboard/orders"
+                element={<Orders />}
               />
             </>
           )}
           {UserType === "Cashier" && (
             <>
               <Route exact path="/cashier-dashboard" element={<Billing />} />
+              <Route
+                exact
+                path="/cashier-dashboard/stocks"
+                element={<Stocks />}
+              />
             </>
           )}
           {UserType === "Staff" && (
@@ -139,19 +149,24 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
               <Route exact path="/Staff-dashboard" element={<Users />} />
               <Route
                 exact
-                path="/showroom-dashboard/products"
+                path="/Staff-dashboard/products"
                 element={<Products />}
               />
               <Route
                 exact
-                path="/showroom-dashboard/stocks"
+                path="/Staff-dashboard/stocks"
                 element={<Stocks />}
               />
             </>
           )}
           {UserType === "Supplier" && (
             <>
-              <Route exact path="/supplier-dashboard" element={<Orders />} />
+              <Route exact path="/Supplier-dashboard" element={<Orders />} />
+            </>
+          )}
+          {UserType === "Customer" && (
+            <>
+              <Route exact path="/customer-dashboard" element={<Orders />} />
             </>
           )}
         </>
@@ -160,14 +175,12 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
   );
 }
 
-function ConditionalSideBar() {
+function ConditionalNavBar() {
   const location = useLocation();
-  // Render Sidebar only if the current location is not the root path ("/")
+  // Render Navbar only if the current location is not the root path ("/")
   if (publicRoutes.includes(location.pathname)) {
     return null;
-  } else if (location.pathname.includes("admin-dashboard")) {
-    return <Navbar />; // Render AdminNavbar for admin-dashboard route
-  }
+  } 
 }
 
 export default App;

@@ -36,33 +36,33 @@ const Logindash = () => {
       .then((response) => {
         const token = response.data.token;
         localStorage.setItem("token", JSON.stringify({ token }));
-        const storedData = localStorage.getItem("token");
-        const parsedData = JSON.parse(storedData);
-        console.log(parsedData);
+        //const storedData = localStorage.getItem("token");
+        //const parsedData = JSON.parse(storedData);
+        //console.log(parsedData);
 
-        // const decoded = jwtDecode(token);
-        // console.log(decoded);
+        const decoded = jwtDecode(token);
+         console.log(decoded);
 
-        // switch (decoded.role) {
-        //   case "Manager":
-        //     navigate("/Analysis");
-        //     break;
-        //   case "Cashier":
-        //     navigate("/Billing");
-        //     break;
-        //   case "Staff":
-        //     navigate("/Inventory");
-        //     break;
-        //   case "Supplier":
-        //     navigate("/Orders");
-        //     break;
-        //   case "Customer":
-        //     navigate("/");
-        //     break;
-        //   default:
-        //     navigate("/");
-        //     break;
-        // }
+        switch (decoded.role) {
+          case "Manager":
+            navigate("/manager-dashboard");
+            break;
+          case "Cashier":
+            navigate("/cashier-dashboard");
+            break;
+          case "Staff":
+            navigate("/staff-dashboard");
+            break;
+          case "Supplier":
+            navigate("/supplier-dashboard");
+            break;
+          case "Customer":
+            navigate("/customer-dashboard");
+            break;
+          default:
+            navigate("/");
+            break;
+        }
       })
       .catch((error) => {
         console.error(error);
