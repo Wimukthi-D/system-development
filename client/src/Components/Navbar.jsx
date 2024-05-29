@@ -18,7 +18,8 @@ import InboxIcon from "@mui/icons-material/MoveToInbox";
 import MailIcon from "@mui/icons-material/Mail";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
-import { white } from '@mui/material/colors';
+import { white } from "@mui/material/colors";
+import { jwtDecode } from "jwt-decode";
 
 function Navbar() {
   const [open, setOpen] = React.useState(false);
@@ -26,29 +27,6 @@ function Navbar() {
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };
- const buttons = [
-    { text: "Inventory", route: "/Stocks" },
-    { text: "Products", route: "/Products" },
-    { text: "Staff Management", route: "/staffmanagement" },
-    { text: "Analysis", route: "/analysis" },
-    { text: "Billing", route: "/billing" },
-    { text: "Orders", route: "/orders" },
-  ];
-  const DrawerList = (
-    <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
-    <List>
-      {buttons.map((button) => (
-        <ListItem key={button.text} disablePadding>
-          <ListItemButton onClick={() => navigate(button.route)}>
-            <ListItemIcon>{button.icon}</ListItemIcon>
-            <ListItemText primary={button.text} />
-          </ListItemButton>
-        </ListItem>
-      ))}
-    </List>
-    {/* Add any other sections if needed */}
-  </Box>
-  );
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,15 +34,79 @@ function Navbar() {
   const [activeRoute, setActiveRoute] = useState(location.pathname);
 
   // Define the buttons and their respective routes
- 
 
   useEffect(() => {
     setActiveRoute(location.pathname);
   }, [location]);
 
+  const storedData = localStorage.getItem("token");
+  let buttons = [];
+
+  if (storedData) {
+    const parsedData = JSON.parse(storedData);
+    const token = parsedData.token;
+    const decoded = jwtDecode(token);
+
+    switch (decoded.role) {
+      case "Manager":
+        buttons = [
+          { text: "Stocks", route: "/manager-dashboard/Stocks" },
+          { text: "Products", route: "/manager-dashboard/Products" },
+          { text: "Staff Management", route: "/manager-dashboard/staffmanage" },
+          { text: "Orders", route: "/manager-dashboard/orders" },
+          { text: "Analysis", route: "/manager-dashboard" },
+         
+        ];
+        break;
+      case "Cashier":
+        buttons = [
+          { text: "Billing", route: "/cashier-dashboard" },
+          { text: "Stocks", route: "/cashier-dashboard/stocks" },
+        ];
+        break;
+      case "Staff":
+        buttons = [
+          { text: "Inventory", route: "/Stocks" },
+          { text: "Products", route: "/Products" },
+        ];
+        break;
+      case "Supplier":
+        buttons = [{ text: "Orders", route: "/orders" }];
+        break;
+      case "Customer":
+        navigate("/customer-dashboard");
+        return; // Exit the function early since navigation has occurred
+      default:
+        navigate("/");
+        return; // Exit the function early since navigation has occurred
+    }
+  } else {
+    navigate("/");
+    return; // Exit the function early since navigation has occurred
+  }
+
+  // Now you can use the buttons array as needed
+  console.log(buttons);
+
+  const DrawerList = (
+    <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
+      <List>
+        {buttons.map((button) => (
+          <ListItem key={button.text} disablePadding>
+            <ListItemButton onClick={() => navigate(button.route)}>
+              <ListItemIcon>{button.icon}</ListItemIcon>
+              <ListItemText primary={button.text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+      {/* Add any other sections if needed */}
+    </Box>
+  );
+
   return (
     <div className="flex w-screen h-20 bg-[#139E0C] items-center justify-between  px-8 py-4">
-      <div className="fixed ">
+      {/* <div className="fixed ">
         <IconButton
           color="inherit"
           aria-label="open drawer"
@@ -72,15 +114,14 @@ function Navbar() {
           edge="start"
           sx={{ mr: 2, ...(open && { display: "none" }) }}
         >
-          <MenuIcon sx={{ color: 'white' }} />
-
+          <MenuIcon sx={{ color: "white" }} />
         </IconButton>
         <Drawer open={open} onClose={toggleDrawer(false)}>
           {DrawerList}
         </Drawer>
-      </div>
+      </div> */}
       <div
-        className="flex bg-white items-center rounded-full ml-10 cursor-pointer"
+        className="flex bg-white items-center rounded-full cursor-pointer"
         onClick={() => navigate("/")}
       >
         <img

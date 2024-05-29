@@ -22,16 +22,16 @@ const { addTest } = require('./Controllers/testController');
 const userController = require('./Controllers/userController'); 
 const authController = require('./Controllers/authController');
 const stockController = require('./Controllers/stockController');
+const billController = require('./Controllers/billController');
 
 // Routes
 app.post('/Test', addTest);
 app.use('/api/user', userController);
 app.use('/api/auth', authController);
 app.use('/api/stock', stockController);
+app.use('/api/bill', billController);
 
 const PORT = process.env.PORT || 3001;
-
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
- 
