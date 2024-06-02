@@ -2,10 +2,9 @@ import React from "react";
 import Login from "./Pages/login.jsx";
 import Inventory from "./Pages/Inventory.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Staffmanage from "./Pages/Manager/Staffmanage.jsx";
 import Analysis from "./Pages/Manager/Analysis.jsx";
 import LandingPage from "./Pages/Landing.jsx";
-import Users from "./Pages/Users.jsx";
+import Users from "./Pages/Manager/Staffmanage.jsx";
 import TestSignup from "./Pages/TestSignup.jsx";
 import StockTable from "./Components/StockTable.jsx";
 import Billing from "./Pages/Cashier/Billing.jsx";
@@ -20,6 +19,7 @@ import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import ProtectedRoutes from "./ProtectedRoutes";
 import NotFoundPage from "./Pages/NotFound.jsx";
+import NewCustomerPopup from "./Components/NewCustomerPopup.jsx";
 
 const publicRoutes = ["/", "/login", "/*"];
 
@@ -114,8 +114,8 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
               <Route exact path="/manager-dashboard" element={<Analysis />} />
               <Route
                 exact
-                path="/manager-dashboard/staffmanage"
-                element={<Staffmanage />}
+                path="/manager-dashboard/users"
+                element={<Users />}
               />
               <Route
                 exact
@@ -140,13 +140,13 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
               <Route
                 exact
                 path="/cashier-dashboard/stocks"
-                element={<Stocks />}
+                element={<NewCustomerPopup />}
               />
             </>
           )}
           {UserType === "Staff" && (
             <>
-              <Route exact path="/Staff-dashboard" element={<Users />} />
+              <Route exact path="/Staff-dashboard" element={<Stocks/>} />
               <Route
                 exact
                 path="/Staff-dashboard/products"
@@ -154,8 +154,8 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
               />
               <Route
                 exact
-                path="/Staff-dashboard/stocks"
-                element={<Stocks />}
+                path="/Staff-dashboard/users"
+                element={< Users/>}
               />
             </>
           )}
