@@ -23,6 +23,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 import Navbar from "../Components/Navbar";
+import { jwtDecode } from "jwt-decode";
 
 function InputField({ placeholder }) {
   return (
@@ -116,12 +117,10 @@ function Stocks() {
     const errors = {};
     if (!stockData.drugname.trim()) {
       errors.drugname = "Drug Name is required";
-    }
-    else if (!stockData.GenericName.trim()) {
+    } else if (!stockData.GenericName.trim()) {
       errors.GenericName = "Generic Name is required";
-    }
-    else if (!stockData.Quantity.trim()) {
-        errors.Quantity = "Quantity is requires ";
+    } else if (!stockData.Quantity.trim()) {
+      errors.Quantity = "Quantity is requires ";
     }
     setErrors(errors);
     return Object.keys(errors).length === 0; // Return true if there are no errors
@@ -274,13 +273,17 @@ function Stocks() {
     fetchData();
   }, []);
 
+  const token = localStorage.getItem("token");
+  const parsedToken = JSON.parse(token);
+  const decodedToken = jwtDecode(parsedToken.token);
+  const Usertype = decodedToken.role;
+
   return (
     <div className="flex flex-col bg-[#EDEDED]">
       <div className=" flex flex-col bg-[#F7F7F7] ">
-      <Navbar/>
+        <Navbar />
         <div className="flex  w-screen h-screen overflow-y-auto">
           <div className="flex-col w-full">
-            
             <div className="flex justify-between mt-10 mx-10">
               <div className="flex ">
                 <div className="bg-white border p-1 flex items-center rounded-xl">
@@ -289,14 +292,16 @@ function Stocks() {
                 </div>
               </div>
               <div>
-                <Primarybutton
-                  text="Add Item"
-                  addIcon="1"
-                  onClick={handleClickOpen}
-                  color="#139E0C"
-                  hoverColor="#437729"
-                  activeColor="#192c10"
-                />
+                {!(Usertype == "Cashier") && (
+                  <Primarybutton
+                    text="Add Item"
+                    addIcon="1"
+                    onClick={handleClickOpen}
+                    color="#139E0C"
+                    hoverColor="#437729"
+                    activeColor="#192c10"
+                  />
+                )}
               </div>
               <Dialog
                 open={open}

@@ -21,6 +21,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { white } from "@mui/material/colors";
 import { jwtDecode } from "jwt-decode";
 
+
 function Navbar() {
   const [open, setOpen] = React.useState(false);
 
@@ -50,28 +51,29 @@ function Navbar() {
     switch (decoded.role) {
       case "Manager":
         buttons = [
-          { text: "Stocks", route: "/manager-dashboard/Stocks" },
-          { text: "Products", route: "/manager-dashboard/Products" },
-          { text: "Staff Management", route: "/manager-dashboard/staffmanage" },
-          { text: "Orders", route: "/manager-dashboard/orders" },
-          { text: "Analysis", route: "/manager-dashboard" },
+          { text: "STOCKS", route: "/manager-dashboard/Stocks" },
+          { text: "PRODUCTS", route: "/manager-dashboard/Products" },
+          { text: "STAFF MANAGEMENT", route: "/manager-dashboard/users" },
+          { text: "ORDERS", route: "/manager-dashboard/orders" },
+          { text: "ANALYSIS", route: "/manager-dashboard" },
          
         ];
         break;
       case "Cashier":
         buttons = [
-          { text: "Billing", route: "/cashier-dashboard" },
-          { text: "Stocks", route: "/cashier-dashboard/stocks" },
+          { text: "BILLING", route: "/cashier-dashboard" },
+          { text: "STOCKS", route: "/cashier-dashboard/stocks" },
         ];
         break;
       case "Staff":
         buttons = [
-          { text: "Inventory", route: "/Stocks" },
-          { text: "Products", route: "/Products" },
+          { text: "INVENTORY", route: "/Staff-dashboard" },
+          { text: "PRODUCTS", route: "/Staff-dashboard/Products" },
+          { text: "STAFF",route: "/staff-dashboard/users"}
         ];
         break;
       case "Supplier":
-        buttons = [{ text: "Orders", route: "/orders" }];
+        buttons = [{ text: "ORDERS", route: "/supplier-dashboard" }];
         break;
       case "Customer":
         navigate("/customer-dashboard");

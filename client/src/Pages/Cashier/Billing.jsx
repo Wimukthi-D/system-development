@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../Components/Navbar";
-import { DataGrid, GridToolbarContainer } from "@mui/x-data-grid";
+import { DataGrid } from "@mui/x-data-grid";
 import { Select, MenuItem, TextField, Autocomplete } from "@mui/material";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import Invoice from "../../Components/Invoice";
+import NewCustomerPopup from "../../Components/NewCustomerPopup";
 
 const VISIBLE_FIELDS = [
   "stockID",
@@ -21,11 +23,11 @@ const VISIBLE_FIELDS = [
 const Billing = () => {
   const [inventoryData, setInventoryData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [filterButtonEl, setFilterButtonEl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [selectedItems, setSelectedItems] = useState([]);
 
   const storedData = localStorage.getItem("token");
   const parsedData = JSON.parse(storedData);
@@ -79,6 +81,27 @@ const Billing = () => {
     return [...new Set(inventoryData.map((item) => item[key]))];
   };
 
+  const handleRowClick = (params) => {
+    const selectedItem = params.row;
+    const existingItem = selectedItems.find(
+      (item) => item.stockID === selectedItem.stockID
+    );
+    if (existingItem) {
+      setSelectedItems((prevItems) =>
+        prevItems.map((item) =>
+          item.stockID === selectedItem.stockID
+            ? { ...item, count: item.count + 1 }
+            : item
+        )
+      );
+    } else {
+      setSelectedItems((prevItems) => [
+        ...prevItems,
+        { ...selectedItem, count: 1 },
+      ]);
+    }
+  };
+
   const columns = [
     { field: "stockID", headerName: "Stock ID", width: 100 },
     { field: "drugname", headerName: "Drug Name", width: 150 },
@@ -96,7 +119,7 @@ const Billing = () => {
       </div>
       <div className="flex h-full w-full">
         <div className="flex flex-col w-3/5 p-4">
-          <div className="flex gap-4 mb-4">
+          <div className="flex justify-center gap-4 mb-4">
             <Autocomplete
               freeSolo
               options={[]}
@@ -108,7 +131,7 @@ const Billing = () => {
                   {...params}
                   label="Search"
                   variant="outlined"
-                  style={{ width: 300, borderRadius: "8px" }}
+                  style={{ width: 300, marginRight: 16, borderRadius: "8px" }}
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "8px",
@@ -159,6 +182,7 @@ const Billing = () => {
             columns={columns}
             loading={loading}
             getRowId={(row) => row.stockID}
+            onRowClick={handleRowClick}
             columnBuffer={2}
             sx={{
               "& .MuiDataGrid-columnHeaders": {
@@ -172,15 +196,33 @@ const Billing = () => {
             }}
           />
         </div>
-        <div className="flex flex-col w-2/5 p-2 h-full">
-          <div className=" flex-col w-full rounded-lg p-4 h-full bg-[#f5f5f5] ">
+        <div className="flex flex-col w-2/5 p-2 h-auto">
+          <div className="flex-col w-full rounded-lg p-4 h-auto bg-[#f5f5f5]">
             <div className="flex flex-col justify-start mb-4 p-4 bg-gray-200 rounded-lg">
               <div>
                 <strong>Cashier:</strong> {UserFirstname}
               </div>
               <div>
+                <strong>Customer:</strong> {NewCustomerPopup()}
+              </div>
+              <div>
                 <strong>Branch:</strong> {BranchName}
               </div>
+              <div className="flex justify-between">
+                <div>
+                  <strong>Date:</strong> {new Date().toDateString()}
+                </div>
+                <div>
+                  <strong>Time:</strong> {new Date().toLocaleTimeString()}
+                </div>
+              </div>
+              <div></div>
+            </div>
+            <div>
+              <Invoice
+                selectedItems={selectedItems}
+                setSelectedItems={setSelectedItems}
+              />
             </div>
           </div>
         </div>

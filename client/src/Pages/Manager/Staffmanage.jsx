@@ -22,6 +22,7 @@ import Swal from "sweetalert2";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { ClassNames } from "@emotion/react";
+import { jwtDecode } from "jwt-decode";
 
 function Staffmanage() {
   const [open, setOpen] = useState(false);
@@ -51,7 +52,7 @@ function Staffmanage() {
     // Reset BranchID to an empty string when Usertype changes
     setUserData((prevUserData) => ({
       ...prevUserData,
-      BranchID: '',
+      BranchID: "",
     }));
   }, [userData.Usertype]);
 
@@ -142,11 +143,13 @@ function Staffmanage() {
     }
     if (userData.Password.length < 8 || userData.Password.length > 15) {
       errors.Password = "Password must be between 8 and 15 characters";
-    }
-    else if (!userData.BranchID.trim() && userData.Usertype !== "Supplier" && userData.Usertype !== "Customer") {
+    } else if (
+      !userData.BranchID.trim() &&
+      userData.Usertype !== "Supplier" &&
+      userData.Usertype !== "Customer"
+    ) {
       errors.BranchID = "Branch is required";
     }
-    
 
     setErrors(errors);
     return Object.keys(errors).length === 0; // Return true if there are no errors
@@ -165,7 +168,7 @@ function Staffmanage() {
             body: JSON.stringify(userData),
           }
         );
-        
+
         if (response.ok) {
           // User added successfully
           const data = await response.json();
@@ -292,6 +295,11 @@ function Staffmanage() {
     }
   };
 
+  const token = localStorage.getItem("token");
+  const parsedToken = JSON.parse(token);
+  const decodedToken = jwtDecode(parsedToken.token);
+  const Usertype = decodedToken.role;
+
   return (
     <div className=" flex flex-col bg-[#F7F7F7] h-screen">
       <div>
@@ -300,14 +308,16 @@ function Staffmanage() {
       <div className="flex  w-screen overflow-y-auto">
         <div className="flex-col w-full">
           <div className="flex justify-end mt-10 mr-10">
-            <Primarybutton
-              text="Add User"
-              addIcon="1"
-              onClick={handleClickOpen}
-              color="#139E0C"
-              hoverColor="#437729"
-              activeColor="#192c10"
-            />
+            {Usertype == "Manager" && (
+              <Primarybutton
+                text="Add User"
+                addIcon="1"
+                onClick={handleClickOpen}
+                color="#139E0C"
+                hoverColor="#437729"
+                activeColor="#192c10"
+              />
+            )}
             <Dialog
               open={open}
               aria-labelledby="form-dialog-title"
@@ -316,7 +326,7 @@ function Staffmanage() {
                 style: { backdropFilter: "blur(5px)" },
                 invisible: true, // This will prevent backdrop click
               }}
-            >
+             >
               <DialogTitle
                 id="form-dialog-title"
                 className="text-center font-extrabold"
