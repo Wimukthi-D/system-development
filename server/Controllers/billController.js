@@ -101,7 +101,7 @@ router.post("/submit", (req, res) => {
               return connection.rollback(() => {
                 res.status(500).send("Internal Server Error");
               });
-            }
+            } 
 
             res.status(201).json({ message: "Invoice submitted successfully" });
           });
@@ -111,9 +111,11 @@ router.post("/submit", (req, res) => {
   });
 });
 
+
+
 router.get("/getCustomer", (req, res) => {
   connection.query(
-    `SELECT Firstname FROM user WHERE Usertype = 'Customer'`,
+    `SELECT FirstName FROM user WHERE Usertype = 'Customer'`,
     (err, rows) => {
       if (err) {
         console.error("Error querying MySQL database:", err);

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { TextField, Button } from "@mui/material";
 import axios from "axios";
 import { grey } from "@mui/material/colors";
-import DeleteIcon from "@mui/icons-material/Delete";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -30,7 +29,7 @@ const Invoice = ({ selectedItems, setSelectedItems, branchID }) => {
   const handleCountChange = (event, stockID, increment = 0) => {
     const newCount =
       parseInt(event.target ? event.target.value : event, 10) + increment;
-    if (!isNaN(newCount) && newCount > 0) {
+    if (!isNaN(newCount) && newCount > 0 ) {
       setSelectedItems((prevItems) =>
         prevItems.map((item) =>
           item.stockID === stockID ? { ...item, count: newCount } : item
@@ -101,8 +100,8 @@ const Invoice = ({ selectedItems, setSelectedItems, branchID }) => {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto">
+    <div className="flex flex-col border justify-between">
+      <div className="flex flex-col">
         <ul className="flex flex-col  gap-2">
           {selectedItems.map((item) => (
             <li
@@ -131,7 +130,7 @@ const Invoice = ({ selectedItems, setSelectedItems, branchID }) => {
                   onChange={(event) => handleCountChange(event, item.stockID)}
                   inputProps={{ min: 1 }}
                   size="small"
-                  style={{ width: 40, textAlign: "center" }}
+                  style={{ width: 80 , textAlign: "center" }}
                 />
                 <Button
                   onClick={() => handleCountChange(item.count, item.stockID, 1)}
@@ -148,7 +147,7 @@ const Invoice = ({ selectedItems, setSelectedItems, branchID }) => {
           ))}
         </ul>
       </div>
-      <div className="p-2">
+      <div className="flex flex-col p-2">
         <div className="flex justify-between px-5 pt-2 items-center">
           <div>Sub Total:</div>
           <div>{calculateTotal().toFixed(2)} LKR</div>

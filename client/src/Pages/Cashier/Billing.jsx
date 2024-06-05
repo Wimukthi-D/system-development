@@ -196,8 +196,8 @@ const Billing = () => {
             }}
           />
         </div>
-        <div className="flex flex-col w-2/5 p-2 h-auto">
-          <div className="flex-col w-full rounded-lg p-4 h-auto bg-[#f5f5f5]">
+        <div className="flex flex-col w-2/5 p-2 h-full">
+          <div className="flex-col w-full rounded-lg p-4 h-full bg-[#f5f5f5]">
             <div className="flex flex-col justify-start mb-4 p-4 bg-gray-200 rounded-lg">
               <div>
                 <strong>Cashier:</strong> {UserFirstname}
@@ -218,7 +218,7 @@ const Billing = () => {
               </div>
               <div></div>
             </div>
-            <div>
+            <div className="flex flex-col w-full h-full ">
               <Invoice
                 selectedItems={selectedItems}
                 setSelectedItems={setSelectedItems}

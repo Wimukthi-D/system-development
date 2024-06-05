@@ -40,7 +40,7 @@ const Logindash = () => {
         const parsedData = JSON.parse(storedData);
         console.log(parsedData);
         const decoded = jwtDecode(token);
-         console.log(decoded);
+        console.log(decoded);
 
         switch (decoded.role) {
           case "Manager":

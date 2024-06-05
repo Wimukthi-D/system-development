@@ -25,11 +25,11 @@ export default function AccessibleTable() {
         <caption>A basic table example with a caption</caption>
         <TableHead>
           <TableRow>
-            <TableCell>Dessert (100g serving)</TableCell>
-            <TableCell align="right">Calories</TableCell>
-            <TableCell align="right">Fat&nbsp;(g)</TableCell>
-            <TableCell align="right">Carbs&nbsp;(g)</TableCell>
-            <TableCell align="right">Protein&nbsp;(g)</TableCell>
+            <TableCell><strong>Dessert (100g serving)</strong></TableCell>
+            <TableCell align="right"><strong>Calories</strong></TableCell>
+            <TableCell align="right"><strong>Fat&nbsp;(g)</strong></TableCell>
+            <TableCell align="right"><strong>Carbs&nbsp;(g)</strong></TableCell>
+            <TableCell align="right"><strong>Protein&nbsp;(g)</strong></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>

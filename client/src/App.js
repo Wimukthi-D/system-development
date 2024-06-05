@@ -20,6 +20,7 @@ import { Navigate } from "react-router-dom";
 import ProtectedRoutes from "./ProtectedRoutes";
 import NotFoundPage from "./Pages/NotFound.jsx";
 import NewCustomerPopup from "./Components/NewCustomerPopup.jsx";
+import Profile from "./Pages/Profile.jsx"
 
 const publicRoutes = ["/", "/login", "/*"];
 
@@ -132,6 +133,11 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
                 path="/manager-dashboard/orders"
                 element={<Orders />}
               />
+              <Route
+                exact
+                path="/manager-dashboard/Profile"
+                element={<Profile />}
+              />
             </>
           )}
           {UserType === "Cashier" && (
@@ -146,17 +152,13 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
           )}
           {UserType === "Staff" && (
             <>
-              <Route exact path="/Staff-dashboard" element={<Stocks/>} />
+              <Route exact path="/Staff-dashboard" element={<Stocks />} />
               <Route
                 exact
                 path="/Staff-dashboard/products"
                 element={<Products />}
               />
-              <Route
-                exact
-                path="/Staff-dashboard/users"
-                element={< Users/>}
-              />
+              <Route exact path="/Staff-dashboard/users" element={<Users />} />
             </>
           )}
           {UserType === "Supplier" && (
@@ -180,7 +182,7 @@ function ConditionalNavBar() {
   // Render Navbar only if the current location is not the root path ("/")
   if (publicRoutes.includes(location.pathname)) {
     return null;
-  } 
+  }
 }
 
 export default App;

@@ -20,19 +20,40 @@ import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import { white } from "@mui/material/colors";
 import { jwtDecode } from "jwt-decode";
-
+import Tooltip from "@mui/material/Tooltip";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Typography from "@mui/material/Typography";
+import Avatar from "@mui/material/Avatar";
+import Profile from "../Pages/Profile";
+import Logout from "@mui/icons-material/Logout";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 
 function Navbar() {
   const [open, setOpen] = React.useState(false);
-
+  const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const settings = ["Profile", "Logout"];
+  const navigate = useNavigate();
+  const location = useLocation();
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };
-
-  const navigate = useNavigate();
-  const location = useLocation();
+  const handleOpenUserMenu = (event) => {
+    setAnchorElUser(event.currentTarget);
+  };
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
 
   const [activeRoute, setActiveRoute] = useState(location.pathname);
+
+  const handleLogOut = () => {
+    localStorage.removeItem("token");
+  };
+
+  const handleProfile = () => {
+    navigate("/manager-dashboard/Profile");
+  };
 
   // Define the buttons and their respective routes
 
@@ -43,20 +64,20 @@ function Navbar() {
   const storedData = localStorage.getItem("token");
   let buttons = [];
 
-  if (storedData) {
-    const parsedData = JSON.parse(storedData);
-    const token = parsedData.token;
-    const decoded = jwtDecode(token);
+  const parsedData = JSON.parse(storedData);
+  const token = parsedData.token;
+  const decoded = jwtDecode(token);
+  const FirstName = decoded.FirstName;
 
+  if (storedData) {
     switch (decoded.role) {
       case "Manager":
         buttons = [
           { text: "STOCKS", route: "/manager-dashboard/Stocks" },
           { text: "PRODUCTS", route: "/manager-dashboard/Products" },
           { text: "STAFF MANAGEMENT", route: "/manager-dashboard/users" },
-          { text: "ORDERS", route: "/manager-dashboard/orders" },
+          { text: "SUPPLIER ORDERS", route: "/manager-dashboard/orders" },
           { text: "ANALYSIS", route: "/manager-dashboard" },
-         
         ];
         break;
       case "Cashier":
@@ -67,9 +88,9 @@ function Navbar() {
         break;
       case "Staff":
         buttons = [
-          { text: "INVENTORY", route: "/Staff-dashboard" },
+          { text: "STOCKS", route: "/Staff-dashboard" },
           { text: "PRODUCTS", route: "/Staff-dashboard/Products" },
-          { text: "STAFF",route: "/staff-dashboard/users"}
+          { text: "STAFF", route: "/staff-dashboard/users" },
         ];
         break;
       case "Supplier":
@@ -132,22 +153,63 @@ function Navbar() {
           className="h-14 ml-5 pb-2 pt-2 overflow-hidden relative right-2"
         />
       </div>
-      <div className="flex gap-4 justify-between">
-        {buttons.map((button, index) => (
-          <Link to={button.route} key={index}>
-            {button.route === activeRoute ? (
-              <Primarybutton
-                text={button.text}
-                color="white"
-                textColor="#139E0C"
-                hoverColor="slate"
-                activeColor="slate"
-              />
-            ) : (
-              <SecondaryButton text={button.text} />
-            )}
-          </Link>
-        ))}
+      <div className="flex items-center  gap-20 justify-between">
+        <div className="flex  gap-4">
+          {buttons.map((button, index) => (
+            <Link to={button.route} key={index}>
+              {button.route === activeRoute ? (
+                <Primarybutton
+                  text={button.text}
+                  color="white"
+                  textColor="#139E0C"
+                  hoverColor="slate"
+                  activeColor="slate"
+                />
+              ) : (
+                <SecondaryButton text={button.text} />
+              )}
+            </Link>
+          ))}
+        </div>
+        <div className="flex text-white text-2xl gap-4 items-center  justify-between ">
+          <div className="flex flex-col justify-center">|</div>
+          <Box sx={{ flexGrow: 0 }}>
+            <Tooltip title="Open settings">
+              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                <Avatar alt={FirstName} src={FirstName} />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              sx={{ mt: "45px" }}
+              id="menu-appbar"
+              anchorEl={anchorElUser}
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              open={Boolean(anchorElUser)}
+              onClose={handleCloseUserMenu}
+            >
+              <MenuItem onClick={handleProfile}>
+                <ListItemIcon>
+                  <ManageAccountsIcon fontSize="small" />
+                </ListItemIcon>
+                Profile
+              </MenuItem>
+              <MenuItem onClick={handleLogOut}>
+                <ListItemIcon>
+                  <Logout fontSize="small" />
+                </ListItemIcon>
+                Logout
+              </MenuItem>
+            </Menu>
+          </Box>
+        </div>
       </div>
     </div>
   );

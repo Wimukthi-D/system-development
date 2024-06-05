@@ -27,12 +27,6 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import PrimaryButton from "./Primarybutton";
 import { jwtDecode } from "jwt-decode";
 
-const token = localStorage.getItem("token");
-const parsedToken = JSON.parse(token);
-const decodedToken = jwtDecode(parsedToken.token);
-const Usertype = decodedToken.role;
-
-
 function createData(
   id,
   username,
@@ -67,6 +61,8 @@ function Row({ row, isOpen, onExpand }) {
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false); // State for toggling new password visibility
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State for toggling confirm password visibility
+  const [token, setToken] = useState(null);
+  const [Usertype, setUsertype] = useState(null);
   const [errors, setErrors] = useState({});
   const [userData, setUserData] = useState({
     Username: row.username,
@@ -81,6 +77,25 @@ function Row({ row, isOpen, onExpand }) {
     BranchID: row.BranchID,
     HiredDate: row.HiredDate,
   });
+
+  useEffect(() => {
+    const storedData = localStorage.getItem('token');
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      setToken(parsedData.token);
+
+      try {
+        const decodedToken = jwtDecode(parsedData.token);
+        if (decodedToken) {
+          setUsertype(decodedToken.role);
+        }
+      } catch (error) {
+        setUsertype(null);
+      }
+    } else {
+      setUsertype(null);
+    }
+  }, []);
 
   useEffect(() => {
     //when the expand is open do these things
@@ -539,7 +554,10 @@ function Row({ row, isOpen, onExpand }) {
                     onChange={handleChange}
                     error={Boolean(errors.FirstName)}
                     helperText={errors.FirstName}
-                    {...(!(Usertype === "Manager") && { readOnly: true, InputProps: { disableUnderline: true } })}
+                    {...(!(Usertype === "Manager") && {
+                      readOnly: true,
+                      InputProps: { disableUnderline: true },
+                    })}
                   />
                   <TextField
                     variant="standard"
@@ -549,7 +567,10 @@ function Row({ row, isOpen, onExpand }) {
                     onChange={handleChange}
                     error={Boolean(errors.LastName)}
                     helperText={errors.LastName}
-                    {...(!(Usertype === "Manager") && { readOnly: true, InputProps: { disableUnderline: true } })}
+                    {...(!(Usertype === "Manager") && {
+                      readOnly: true,
+                      InputProps: { disableUnderline: true },
+                    })}
                   />
                   <TextField
                     variant="standard"
@@ -560,7 +581,10 @@ function Row({ row, isOpen, onExpand }) {
                     onChange={handleChange}
                     error={Boolean(errors.NIC)}
                     helperText={errors.NIC}
-                    {...(!(Usertype === "Manager") && { readOnly: true, InputProps: { disableUnderline: true } })}
+                    {...(!(Usertype === "Manager") && {
+                      readOnly: true,
+                      InputProps: { disableUnderline: true },
+                    })}
                   />
                   <TextField
                     variant="standard"
@@ -571,7 +595,10 @@ function Row({ row, isOpen, onExpand }) {
                     onChange={handleChange}
                     error={Boolean(errors.PhoneNumber)}
                     helperText={errors.PhoneNumber}
-                    {...(!(Usertype === "Manager") && { readOnly: true, InputProps: { disableUnderline: true } })}
+                    {...(!(Usertype === "Manager") && {
+                      readOnly: true,
+                      InputProps: { disableUnderline: true },
+                    })}
                   />
                   <FormControl variant="standard" style={{ width: "125px" }}>
                     <InputLabel id="Usertype-label">User type</InputLabel>
@@ -582,7 +609,10 @@ function Row({ row, isOpen, onExpand }) {
                       value={userData.Usertype}
                       onChange={handleChange}
                       label="Usertype"
-                      {...(!(Usertype === "Manager") && { readOnly: true, InputProps: { disableUnderline: true } })}
+                      {...(!(Usertype === "Manager") && {
+                        readOnly: true,
+                        InputProps: { disableUnderline: true },
+                      })}
                     >
                       <MenuItem value="Manager">Manager</MenuItem>
                       <MenuItem value="Cashier">Cashier</MenuItem>
@@ -604,7 +634,10 @@ function Row({ row, isOpen, onExpand }) {
                           label="BranchID"
                           onChange={handleChange}
                           name="BranchID"
-                          {...(!(Usertype === "Manager") && { readOnly: true, InputProps: { disableUnderline: true } })}
+                          {...(!(Usertype === "Manager") && {
+                            readOnly: true,
+                            InputProps: { disableUnderline: true },
+                          })}
                         >
                           <MenuItem value="1">Dankotuwa</MenuItem>
                           <MenuItem value="2">Marawila</MenuItem>
@@ -622,7 +655,10 @@ function Row({ row, isOpen, onExpand }) {
                     onChange={handleChange}
                     error={Boolean(errors.Username)}
                     helperText={errors.Username}
-                    {...(!(Usertype === "Manager") && { readOnly: true, InputProps: { disableUnderline: true } })}
+                    {...(!(Usertype === "Manager") && {
+                      readOnly: true,
+                      InputProps: { disableUnderline: true },
+                    })}
                   />
                   <TextField
                     variant="standard"
@@ -633,7 +669,10 @@ function Row({ row, isOpen, onExpand }) {
                     onChange={handleChange}
                     error={Boolean(errors.Email)}
                     helperText={errors.Email}
-                    {...(!(Usertype === "Manager") && { readOnly: true, InputProps: { disableUnderline: true } })}
+                    {...(!(Usertype === "Manager") && {
+                      readOnly: true,
+                      InputProps: { disableUnderline: true },
+                    })}
                   />
                   <TextField
                     variant="standard"
@@ -644,7 +683,10 @@ function Row({ row, isOpen, onExpand }) {
                     onChange={handleChange}
                     error={Boolean(errors.Address)}
                     helperText={errors.Address}
-                    {...(!(Usertype === "Manager") && { readOnly: true, InputProps: { disableUnderline: true } })}
+                    {...(!(Usertype === "Manager") && {
+                      readOnly: true,
+                      InputProps: { disableUnderline: true },
+                    })}
                   />
                 </div>
                 {Usertype == "Manager" && (
@@ -824,7 +866,6 @@ export default function CollapsibleTable() {
       setExpandedRow(rowId);
     }
   };
-
 
   return (
     <TableContainer component={Paper}>
