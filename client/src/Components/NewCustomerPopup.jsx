@@ -18,12 +18,11 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Primarybutton from "./Primarybutton"; // Ensure this component is correctly imported
 
-const CustomerAutocomplete = () => {
+const CustomerAutocomplete = ({ onCustomerSelect }) => {
   const [customers, setCustomers] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [open, setOpen] = useState(false);
-  const [tableDataChanged, setTableDataChanged] = useState(false);
   const [userData, setUserData] = useState({
     FirstName: "",
     LastName: "",
@@ -43,6 +42,12 @@ const CustomerAutocomplete = () => {
   };
 
   useEffect(() => {
+    if (selectedCustomer) {
+      onCustomerSelect(selectedCustomer);
+    }
+  }, [selectedCustomer, onCustomerSelect]);
+
+  useEffect(() => {
     // Fetch customer data from backend
     axios
       .get("http://localhost:3001/api/bill/getCustomer")
@@ -59,10 +64,12 @@ const CustomerAutocomplete = () => {
     setOpen(false);
     Swal.fire({
       title: "Customer Selection",
-      text: "Is this an existing customer or a new customer?",
+      text: "Is this an existing customer, a new customer, or a guest customer?",
       icon: "question",
+      showDenyButton: true,
       showCancelButton: true,
       confirmButtonText: "Existing Customer",
+      denyButtonText: "Guest Customer",
       cancelButtonText: "New Customer",
       backdrop: false,
       customClass: {
@@ -71,6 +78,8 @@ const CustomerAutocomplete = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         handleExistingCustomer();
+      } else if (result.isDenied) {
+        handleGuestCustomer();
       } else if (result.dismiss === Swal.DismissReason.cancel) {
         handleNewCustomer();
       }
@@ -101,6 +110,10 @@ const CustomerAutocomplete = () => {
         />
       ),
     });
+  };
+
+  const handleGuestCustomer = () => {
+    setSelectedCustomer("Guest Customer");
   };
 
   console.log("selected", selectedCustomer);
@@ -208,8 +221,6 @@ const CustomerAutocomplete = () => {
             },
           }).then(() => {
             handleClose(); // Close the dialog box
-            window.location.reload(); // Reload the table data
-            setTableDataChanged((prevState) => !prevState);
           });
         } else if (response.status === 400) {
           // Error due to existing fields
@@ -315,7 +326,7 @@ const CustomerAutocomplete = () => {
   };
   // Call handleSelectCustomer directly
 
-  const selectedName = selectedCustomer;
+  console.log("selected Customer", selectedCustomer);
 
   return (
     <div>
@@ -323,6 +334,7 @@ const CustomerAutocomplete = () => {
         <Button
           variant="contained"
           onClick={handleSelectCustomer}
+          size="small"
           sx={{
             "&.MuiButtonBase-root": {
               borderRadius: "8px",
@@ -346,7 +358,7 @@ const CustomerAutocomplete = () => {
           id="form-dialog-title"
           className="text-center font-extrabold"
         >
-          User Registration
+          Customer Registration
         </DialogTitle>
         <div className="mb-3">
           <DialogContent>

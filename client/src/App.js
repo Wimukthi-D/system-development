@@ -1,15 +1,11 @@
 import React from "react";
 import Login from "./Pages/login.jsx";
-import Inventory from "./Pages/Inventory.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Analysis from "./Pages/Manager/Analysis.jsx";
 import LandingPage from "./Pages/Landing.jsx";
 import Users from "./Pages/Manager/Staffmanage.jsx";
-import TestSignup from "./Pages/TestSignup.jsx";
-import StockTable from "./Components/StockTable.jsx";
 import Billing from "./Pages/Cashier/Billing.jsx";
 import Orders from "./Pages/Supplier/Orders.jsx";
-import SideBar from "./Components/SideBar.jsx";
 import Products from "./Pages/Products.jsx";
 import Stocks from "./Pages/Stocks.jsx";
 import Navbar from "./Components/Navbar.jsx";
@@ -20,7 +16,8 @@ import { Navigate } from "react-router-dom";
 import ProtectedRoutes from "./ProtectedRoutes";
 import NotFoundPage from "./Pages/NotFound.jsx";
 import NewCustomerPopup from "./Components/NewCustomerPopup.jsx";
-import Profile from "./Pages/Profile.jsx"
+import Profile from "./Pages/Profile.jsx";
+import OrderHistory from "./Pages/OrderHistory.jsx";
 
 const publicRoutes = ["/", "/login", "/*"];
 
@@ -83,17 +80,12 @@ function App() {
 
   return (
     <Router>
-      <div>
-        <ConditionalNavBar />
-        <div>
-          <Routes>
-            {RenderProtectedRoutes(UserType, isAuthenticated)}
-            <Route exact path="/login" element={<Login />} />
-            <Route exact path="/" element={<LandingPage />} />
-            <Route exact path="*" element={<NotFoundPage />} />
-          </Routes>
-        </div>
-      </div>
+      <Routes>
+        {RenderProtectedRoutes(UserType, isAuthenticated)}
+        <Route exact path="/login" element={<Login />} />
+        <Route exact path="/" element={<LandingPage />} />
+        <Route exact path="*" element={<NotFoundPage />} />
+      </Routes>
     </Router>
   );
 }
@@ -101,7 +93,7 @@ function App() {
 // Function to render protected routes based on user role
 function RenderProtectedRoutes(UserType, isAuthenticated) {
   if (!isAuthenticated && !publicRoutes.includes(window.location.pathname)) {
-    return <Route path="*" element={<Navigate to="/login" replace />} />;
+    return <Route path="*" element={<Navigate to="/" replace />} />;
   }
   console.log(isAuthenticated);
   console.log(UserType);
@@ -138,6 +130,11 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
                 path="/manager-dashboard/Profile"
                 element={<Profile />}
               />
+              <Route
+                exact
+                path="/manager-dashboard/orderhistory"
+                element={<OrderHistory />}
+              />
             </>
           )}
           {UserType === "Cashier" && (
@@ -147,6 +144,11 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
                 exact
                 path="/cashier-dashboard/stocks"
                 element={<NewCustomerPopup />}
+              />
+              <Route
+                exact
+                path="/cashier-dashboard/Profile"
+                element={<Profile />}
               />
             </>
           )}
@@ -159,16 +161,31 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
                 element={<Products />}
               />
               <Route exact path="/Staff-dashboard/users" element={<Users />} />
+              <Route
+                exact
+                path="/Staff-dashboard/Profile"
+                element={<Profile />}
+              />
             </>
           )}
           {UserType === "Supplier" && (
             <>
               <Route exact path="/Supplier-dashboard" element={<Orders />} />
+              <Route
+                exact
+                path="/Supplier-dashboard/Profile"
+                element={<Profile />}
+              />
             </>
           )}
           {UserType === "Customer" && (
             <>
               <Route exact path="/customer-dashboard" element={<Orders />} />
+              <Route
+                exact
+                path="/customer-dashboard/Profile"
+                element={<Profile />}
+              />
             </>
           )}
         </>

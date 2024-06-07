@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Logo from "../assets/DM logo.png";
 import Primarybutton from "../Components/Primarybutton";
+import SecondaryButton from "../Components/SecondaryButton";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode"; // Note: Import jwtDecode correctly without curly braces
 import Swal from "sweetalert2";
@@ -280,204 +281,182 @@ function Navland() {
   };
 
   return (
-    <div className="bg-white">
-      <div className="flex w-screen justify-between items-center">
-        <img src={Logo} alt="logo" className="h-16  ml-5 pb-2 pt-2" />
-        <div className="flex px-10 gap-4">
-          {!token && (
-            <>
-              <Primarybutton
-                text="SIGN UP"
-                color="#139E0C"
-                onClick={handleClickOpen}
-                hoverColor="#437729"
-                activeColor="#192c10"
-              />
-              <Primarybutton
-                text="LOGIN"
-                onClick={() => navigate("/login")}
-                color="#139E0C"
-                hoverColor="#437729"
-                activeColor="#192c10"
-              />
-            </>
-          )}
-          {token && (
-            <>
-              <Primarybutton
-                text="LOGOUT"
-                color="#139E0C"
-                onClick={handleLogout}
-                hoverColor="#437729"
-                activeColor="#192c10"
-              />
-            </>
-          )}
-
-          <Dialog
-            open={open}
-            aria-labelledby="form-dialog-title"
-            disableEscapeKeyDown={true}
-            BackdropProps={{
-              style: {
-                backdropFilter: "blur(5px)",
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-              },
-              invisible: true, // This will prevent backdrop click
-            }}
-            PaperProps={{
-              style: {
-                borderRadius: 20, // Adjust the value to your desired roundness
-              },
-            }}
-          >
-            <DialogTitle
-              id="form-dialog-title"
-              className="text-center font-extrabold"
-            >
-              Customer Registration
-            </DialogTitle>
-            <div className="mb-3">
-              <DialogContent>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField
-                      label="First Name"
-                      name="FirstName"
-                      value={userData.FirstName}
-                      onChange={handleChange}
-                      fullWidth
-                      error={Boolean(errors.FirstName)}
-                      helperText={errors.FirstName}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      label="Last Name"
-                      name="LastName"
-                      value={userData.LastName}
-                      onChange={handleChange}
-                      fullWidth
-                      error={Boolean(errors.LastName)}
-                      helperText={errors.LastName}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      label="NIC"
-                      name="NIC"
-                      value={userData.NIC}
-                      onChange={handleChange}
-                      fullWidth
-                      error={Boolean(errors.NIC)}
-                      helperText={errors.NIC}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      label="Phone Number (07X XXX XXXX)"
-                      name="PhoneNumber"
-                      value={userData.PhoneNumber}
-                      onChange={handleChange}
-                      fullWidth
-                      error={Boolean(errors.PhoneNumber)}
-                      helperText={errors.PhoneNumber}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Email"
-                      type="email"
-                      name="Email"
-                      value={userData.Email}
-                      onChange={handleChange}
-                      fullWidth
-                      error={Boolean(errors.Email)}
-                      helperText={errors.Email}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Address"
-                      name="Address"
-                      value={userData.Address}
-                      onChange={handleChange}
-                      fullWidth
-                      multiline
-                      rows={4}
-                      error={Boolean(errors.Address)}
-                      helperText={errors.Address}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      label="Username"
-                      name="Username"
-                      value={userData.Username}
-                      onChange={handleChange}
-                      fullWidth
-                      error={Boolean(errors.Username)}
-                      helperText={errors.Username}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      label="Password"
-                      type={showPassword ? "text" : "password"}
-                      name="Password"
-                      value={userData.Password}
-                      onChange={handleChange}
-                      fullWidth
-                      error={Boolean(errors.Password)}
-                      helperText={errors.Password}
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <IconButton onClick={handlePasswordVisibility}>
-                              {showPassword ? (
-                                <Visibility />
-                              ) : (
-                                <VisibilityOff />
-                              )}
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </DialogContent>
-            </div>
-            <DialogActions className="mx-4 mb-4">
-              <div className="flex w-full justify-around">
-                <div className="w-1/2">
-                  <Primarybutton
-                    onClick={handleAddUser}
-                    text="Create Account"
-                    fullWidth="1"
-                    color="#139E0C"
-                    hoverColor="#437729"
-                    activeColor="#192c10"
-                  />
-                </div>
-
-                <div className="w-1/2">
-                  <Primarybutton
-                    onClick={handleClose}
-                    fullWidth="0"
-                    text="Cancel"
-                    color="red"
-                    hoverColor="#dc2626"
-                    activeColor="#450a0a"
-                  />
-                </div>
-              </div>
-            </DialogActions>
-          </Dialog>
-        </div>
+    <div className="flex w-screen h-20 bg-[#139E0C] items-center justify-between px-8 py-4">
+      <div
+        className="flex bg-white items-center rounded-full cursor-pointer"
+        onClick={() => navigate("/")}
+      >
+        <img
+          src={Logo}
+          alt="logo"
+          className="h-14 ml-5 pb-2 pt-2 overflow-hidden relative right-2"
+        />
       </div>
+      <div className="flex items-center gap-4 justify-between">
+        {!token && (
+          <>
+            <SecondaryButton text="SIGN UP" onClick={handleClickOpen} />
+            <SecondaryButton text="LOGIN" onClick={() => navigate("/login")} />
+          </>
+        )}
 
-      <div className="bg-[#139E0C] h-8"></div>
+        <Dialog
+          open={open}
+          aria-labelledby="form-dialog-title"
+          disableEscapeKeyDown={true}
+          BackdropProps={{
+            style: {
+              backdropFilter: "blur(5px)",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+            },
+            invisible: true, // This will prevent backdrop click
+          }}
+          PaperProps={{
+            style: {
+              borderRadius: 20, // Adjust the value to your desired roundness
+            },
+          }}
+        >
+          <DialogTitle
+            id="form-dialog-title"
+            className="text-center font-extrabold"
+          >
+            Customer Registration
+          </DialogTitle>
+          <div className="mb-3">
+            <DialogContent>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <TextField
+                    label="First Name"
+                    name="FirstName"
+                    value={userData.FirstName}
+                    onChange={handleChange}
+                    fullWidth
+                    error={Boolean(errors.FirstName)}
+                    helperText={errors.FirstName}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Last Name"
+                    name="LastName"
+                    value={userData.LastName}
+                    onChange={handleChange}
+                    fullWidth
+                    error={Boolean(errors.LastName)}
+                    helperText={errors.LastName}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="NIC"
+                    name="NIC"
+                    value={userData.NIC}
+                    onChange={handleChange}
+                    fullWidth
+                    error={Boolean(errors.NIC)}
+                    helperText={errors.NIC}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Phone Number (07X XXX XXXX)"
+                    name="PhoneNumber"
+                    value={userData.PhoneNumber}
+                    onChange={handleChange}
+                    fullWidth
+                    error={Boolean(errors.PhoneNumber)}
+                    helperText={errors.PhoneNumber}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Email"
+                    type="email"
+                    name="Email"
+                    value={userData.Email}
+                    onChange={handleChange}
+                    fullWidth
+                    error={Boolean(errors.Email)}
+                    helperText={errors.Email}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Address"
+                    name="Address"
+                    value={userData.Address}
+                    onChange={handleChange}
+                    fullWidth
+                    multiline
+                    rows={4}
+                    error={Boolean(errors.Address)}
+                    helperText={errors.Address}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Username"
+                    name="Username"
+                    value={userData.Username}
+                    onChange={handleChange}
+                    fullWidth
+                    error={Boolean(errors.Username)}
+                    helperText={errors.Username}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Password"
+                    type={showPassword ? "text" : "password"}
+                    name="Password"
+                    value={userData.Password}
+                    onChange={handleChange}
+                    fullWidth
+                    error={Boolean(errors.Password)}
+                    helperText={errors.Password}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton onClick={handlePasswordVisibility}>
+                            {showPassword ? <Visibility /> : <VisibilityOff />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </DialogContent>
+          </div>
+          <DialogActions className="mx-4 mb-4">
+            <div className="flex w-full justify-around">
+              <div className="w-1/2">
+                <Primarybutton
+                  onClick={handleAddUser}
+                  text="Create Account"
+                  fullWidth="1"
+                  color="#139E0C"
+                  hoverColor="#437729"
+                  activeColor="#192c10"
+                />
+              </div>
+
+              <div className="w-1/2">
+                <Primarybutton
+                  onClick={handleClose}
+                  fullWidth="0"
+                  text="Cancel"
+                  color="red"
+                  hoverColor="#dc2626"
+                  activeColor="#450a0a"
+                />
+              </div>
+            </div>
+          </DialogActions>
+        </Dialog>
+      </div>
     </div>
   );
 }

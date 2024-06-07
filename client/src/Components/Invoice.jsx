@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { TextField, Button } from "@mui/material";
-import axios from "axios";
 import { grey } from "@mui/material/colors";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import AddIcon from "@mui/icons-material/Add";
@@ -9,6 +8,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import { MonetizationOn } from "@mui/icons-material";
 import { createTheme } from "@mui/material/styles";
 import { ThemeProvider } from "@emotion/react";
+import Swal from "sweetalert2";
 
 const theme = createTheme({
   palette: {
@@ -21,15 +21,23 @@ const theme = createTheme({
   },
 });
 
-const Invoice = ({ selectedItems, setSelectedItems, branchID }) => {
+const Invoice = ({
+  selectedItems,
+  setSelectedItems,
+  branchID,
+  customerID,
+  cashierID,
+}) => {
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [amountPaid, setAmountPaid] = useState(0);
 
+  console.log("selected passed", selectedItems);
+
   const handleCountChange = (event, stockID, increment = 0) => {
     const newCount =
       parseInt(event.target ? event.target.value : event, 10) + increment;
-    if (!isNaN(newCount) && newCount > 0 ) {
+    if (!isNaN(newCount) && newCount > 0) {
       setSelectedItems((prevItems) =>
         prevItems.map((item) =>
           item.stockID === stockID ? { ...item, count: newCount } : item
@@ -58,22 +66,22 @@ const Invoice = ({ selectedItems, setSelectedItems, branchID }) => {
 
   const handleContinue = () => {
     const data = selectedItems.map((item) => ({
+      productID: item.productID,
+      quantity: item.count,
+      unitprice: item.unitprice,
       stockID: item.stockID,
-      amount: item.count,
-      branchID: item.branchID,
     }));
 
     // Create the payload for the POST request
     const payload = {
       items: data,
-      discount,
-      total: calculateGrandTotal(),
       paymentMethod,
-      amountPaid,
+      cashierID,
+      branchID,
+      customerID,
     };
 
-    //console.log(payload);
-    // Use fetch instead of axios to make the POST request
+    console.log(payload);
     fetch("http://localhost:3001/api/bill/submit", {
       method: "POST",
       headers: {
@@ -84,14 +92,27 @@ const Invoice = ({ selectedItems, setSelectedItems, branchID }) => {
       .then((response) => {
         if (!response.ok) {
           throw new Error("Network response was not ok" + response.statusText);
+        } else {
+          console.log("Invoice submitted successfully", data);
+          Swal.fire({
+            icon: "success",
+            title: "Successful",
+            text: "Invoice submitted successfully",
+          }).then(() => {
+            window.location.reload();
+          });
+          console.log("Raw response:", response);
         }
+        console.log("Raw response:", response);
         return response.json();
-      })
-      .then((data) => {
-        console.log("Invoice submitted successfully", data);
       })
       .catch((error) => {
         console.error("Error submitting invoice", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Error submitting invoice: " + error.message,
+        });
       });
   };
 
@@ -100,7 +121,7 @@ const Invoice = ({ selectedItems, setSelectedItems, branchID }) => {
   };
 
   return (
-    <div className="flex flex-col border justify-between">
+    <div className="flex flex-col justify-between">
       <div className="flex flex-col">
         <ul className="flex flex-col  gap-2">
           {selectedItems.map((item) => (
@@ -130,7 +151,7 @@ const Invoice = ({ selectedItems, setSelectedItems, branchID }) => {
                   onChange={(event) => handleCountChange(event, item.stockID)}
                   inputProps={{ min: 1 }}
                   size="small"
-                  style={{ width: 80 , textAlign: "center" }}
+                  style={{ width: 80, textAlign: "center" }}
                 />
                 <Button
                   onClick={() => handleCountChange(item.count, item.stockID, 1)}
