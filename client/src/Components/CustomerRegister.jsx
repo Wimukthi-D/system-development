@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Logo from "../assets/DM logo.png";
 import Primarybutton from "../Components/Primarybutton";
-import SecondaryButton from "../Components/SecondaryButton";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode"; // Note: Import jwtDecode correctly without curly braces
 import Swal from "sweetalert2";
@@ -18,9 +16,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 
-function Navland() {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+const CustomerRegister = ({ open }) => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [tableDataChanged, setTableDataChanged] = useState(false);
@@ -37,25 +33,8 @@ function Navland() {
     Usertype: "Customer",
     BranchID: "null",
   });
-  if (token) {
-    try {
-      const parsedData = JSON.parse(token);
-      const decoded = jwtDecode(parsedData);
-    } catch (error) {
-      console.error("Invalid token format:", error);
-    }
-  }
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-  };
 
   const handleClose = () => {
-    setOpen(false);
     setUserData({
       Username: "",
       Password: "",
@@ -281,25 +260,8 @@ function Navland() {
   };
 
   return (
-    <div className="flex w-screen h-20 bg-[#139E0C] items-center justify-between px-8 py-4">
-      <div
-        className="flex bg-white items-center rounded-full cursor-pointer"
-        onClick={() => navigate("/")}
-      >
-        <img
-          src={Logo}
-          alt="logo"
-          className="h-14 ml-5 pb-2 pt-2 overflow-hidden relative right-2"
-        />
-      </div>
-      <div className="flex items-center gap-4 justify-between">
-        {!token && (
-          <>
-            <SecondaryButton text="SIGN UP" onClick={handleClickOpen} />
-            <SecondaryButton text="LOGIN" onClick={() => navigate("/login")} />
-          </>
-        )}
-
+    <div>
+      <div className="flex px-10 gap-4">
         <Dialog
           open={open}
           aria-labelledby="form-dialog-title"
@@ -461,4 +423,4 @@ function Navland() {
   );
 }
 
-export default Navland;
+export default CustomerRegister;

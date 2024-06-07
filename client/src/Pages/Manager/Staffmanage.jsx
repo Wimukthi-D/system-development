@@ -326,11 +326,11 @@ function Staffmanage() {
                 style: { backdropFilter: "blur(5px)" },
                 invisible: true, // This will prevent backdrop click
               }}
-             >
+            >
               <DialogTitle
                 id="form-dialog-title"
                 className="text-center font-extrabold"
-              >
+                >
                 User Registration
               </DialogTitle>
               <div className="mb-3">

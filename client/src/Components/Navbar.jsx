@@ -6,57 +6,101 @@ import SecondaryButton from "../Components/SecondaryButton";
 import { useNavigate } from "react-router-dom";
 import * as React from "react";
 import Box from "@mui/material/Box";
-import Drawer from "@mui/material/Drawer";
-import Button from "@mui/material/Button";
 import List from "@mui/material/List";
-import Divider from "@mui/material/Divider";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import MailIcon from "@mui/icons-material/Mail";
 import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
-import { white } from "@mui/material/colors";
 import { jwtDecode } from "jwt-decode";
-
+import Tooltip from "@mui/material/Tooltip";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Avatar from "@mui/material/Avatar";
+import Logout from "@mui/icons-material/Logout";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import CustomerRegister from "./CustomerRegister";
 
 function Navbar() {
   const [open, setOpen] = React.useState(false);
-
+  const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const navigate = useNavigate();
+  const [token, setToken] = useState(null);
+  const [Usertype, setUsertype] = useState(null);
+  const [FirstName, setFirstName] = useState(null);
+  const location = useLocation();
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };
-
-  const navigate = useNavigate();
-  const location = useLocation();
+  const handleOpenUserMenu = (event) => {
+    setAnchorElUser(event.currentTarget);
+  };
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
 
   const [activeRoute, setActiveRoute] = useState(location.pathname);
 
-  // Define the buttons and their respective routes
+  const handleLogOut = () => {
+    localStorage.removeItem("token");
+    if (window.location.pathname === "/") {
+      window.location.reload();
+    }
+  };
+
+  useEffect(() => {
+    const storedData = localStorage.getItem("token");
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      setToken(parsedData.token);
+
+      try {
+        const decodedToken = jwtDecode(parsedData.token);
+        if (decodedToken) {
+          setUsertype(decodedToken.role);
+          setFirstName(decodedToken.FirstName);
+        }
+      } catch (error) {
+        setUsertype(null);
+      }
+    } else {
+      setUsertype(null);
+    }
+  }, []);
+
+  const handleProfile = () => {
+    switch (Usertype) {
+      case "Manager":
+        navigate("/manager-dashboard/Profile");
+        break;
+      case "Cashier":
+        navigate("/cashier-dashboard/Profile");
+        break;
+      case "Staff":
+        navigate("/staff-dashboard/Profile");
+        break;
+      case "Supplier":
+        navigate("/supplier-dashboard/Profile");
+        break;
+    }
+  };
 
   useEffect(() => {
     setActiveRoute(location.pathname);
   }, [location]);
 
-  const storedData = localStorage.getItem("token");
   let buttons = [];
 
-  if (storedData) {
-    const parsedData = JSON.parse(storedData);
-    const token = parsedData.token;
-    const decoded = jwtDecode(token);
-
-    switch (decoded.role) {
+  if (token) {
+    switch (Usertype) {
       case "Manager":
         buttons = [
           { text: "STOCKS", route: "/manager-dashboard/Stocks" },
           { text: "PRODUCTS", route: "/manager-dashboard/Products" },
           { text: "STAFF MANAGEMENT", route: "/manager-dashboard/users" },
-          { text: "ORDERS", route: "/manager-dashboard/orders" },
+          { text: "SUPPLIER ORDERS", route: "/manager-dashboard/orders" },
           { text: "ANALYSIS", route: "/manager-dashboard" },
-         
+          { text: "ORDER HISTORY", route: "/manager-dashboard/orderhistory" },
         ];
         break;
       case "Cashier":
@@ -67,9 +111,9 @@ function Navbar() {
         break;
       case "Staff":
         buttons = [
-          { text: "INVENTORY", route: "/Staff-dashboard" },
+          { text: "STOCKS", route: "/Staff-dashboard" },
           { text: "PRODUCTS", route: "/Staff-dashboard/Products" },
-          { text: "STAFF",route: "/staff-dashboard/users"}
+          { text: "STAFF", route: "/staff-dashboard/users" },
         ];
         break;
       case "Supplier":
@@ -83,11 +127,9 @@ function Navbar() {
         return; // Exit the function early since navigation has occurred
     }
   } else {
-    navigate("/");
-    return; // Exit the function early since navigation has occurred
+    return;
   }
 
-  // Now you can use the buttons array as needed
   console.log(buttons);
 
   const DrawerList = (
@@ -107,47 +149,76 @@ function Navbar() {
   );
 
   return (
-    <div className="flex w-screen h-20 bg-[#139E0C] items-center justify-between  px-8 py-4">
-      {/* <div className="fixed ">
-        <IconButton
-          color="inherit"
-          aria-label="open drawer"
-          onClick={toggleDrawer(true)}
-          edge="start"
-          sx={{ mr: 2, ...(open && { display: "none" }) }}
-        >
-          <MenuIcon sx={{ color: "white" }} />
-        </IconButton>
-        <Drawer open={open} onClose={toggleDrawer(false)}>
-          {DrawerList}
-        </Drawer>
-      </div> */}
+    <div className="flex w-screen h-20 bg-[#139E0C] items-center justify-between px-8 py-4">
       <div
         className="flex bg-white items-center rounded-full cursor-pointer"
         onClick={() => navigate("/")}
-      >
+        >
         <img
           src={Logo}
           alt="logo"
           className="h-14 ml-5 pb-2 pt-2 overflow-hidden relative right-2"
         />
       </div>
-      <div className="flex gap-4 justify-between">
-        {buttons.map((button, index) => (
-          <Link to={button.route} key={index}>
-            {button.route === activeRoute ? (
-              <Primarybutton
-                text={button.text}
-                color="white"
-                textColor="#139E0C"
-                hoverColor="slate"
-                activeColor="slate"
-              />
-            ) : (
-              <SecondaryButton text={button.text} />
-            )}
-          </Link>
-        ))}
+      <div>
+        <div className="flex items-center gap-20 justify-between">
+          <div className="flex gap-4">
+            {buttons.map((button, index) => (
+              <Link to={button.route} key={index}>
+                {button.route === activeRoute ? (
+                  <Primarybutton
+                    text={button.text}
+                    color="white"
+                    textColor="#139E0C"
+                    hoverColor="slate"
+                    activeColor="slate"
+                  />
+                ) : (
+                  <SecondaryButton text={button.text} />
+                )}
+              </Link>
+            ))}
+          </div>
+          <div className="flex text-white text-2xl gap-4 items-center justify-between">
+            <div className="flex flex-col justify-center">|</div>
+            <Box sx={{ flexGrow: 0 }}>
+              <Tooltip title="Open settings">
+                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                  <Avatar alt={FirstName} src={FirstName} />
+                </IconButton>
+              </Tooltip>
+              <Menu
+                sx={{ mt: "45px" }}
+                id="menu-appbar"
+                anchorEl={anchorElUser}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
+              >
+                <MenuItem onClick={handleProfile}>
+                  <ListItemIcon>
+                    <ManageAccountsIcon fontSize="small" />
+                  </ListItemIcon>
+                  Profile
+                </MenuItem>
+                <MenuItem onClick={handleLogOut}>
+                  <ListItemIcon>
+                    <Logout fontSize="small" />
+                  </ListItemIcon>
+                  Logout
+                </MenuItem>
+              </Menu>
+            </Box>
+          </div>
+        </div>
       </div>
     </div>
   );

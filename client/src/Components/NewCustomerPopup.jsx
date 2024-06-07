@@ -11,7 +11,6 @@ import {
   Grid,
   InputAdornment,
   IconButton,
-  link,
 } from "@mui/material";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -19,11 +18,11 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Primarybutton from "./Primarybutton"; // Ensure this component is correctly imported
 
-const CustomerAutocomplete = () => {
+const CustomerAutocomplete = ({ onCustomerSelect }) => {
   const [customers, setCustomers] = useState([]);
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [open, setOpen] = useState(false);
-  const [tableDataChanged, setTableDataChanged] = useState(false); // <--- Add this line to manage table data changes
   const [userData, setUserData] = useState({
     FirstName: "",
     LastName: "",
@@ -35,16 +34,26 @@ const CustomerAutocomplete = () => {
     Password: "",
     Usertype: "Customer", // Always set Usertype to 'Customer'
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const MySwal = withReactContent(Swal);
+
+  const handlePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  useEffect(() => {
+    if (selectedCustomer) {
+      onCustomerSelect(selectedCustomer);
+    }
+  }, [selectedCustomer, onCustomerSelect]);
 
   useEffect(() => {
     // Fetch customer data from backend
     axios
       .get("http://localhost:3001/api/bill/getCustomer")
       .then((response) => {
-        setCustomers(response.data.customers);
+        setCustomers(response.data.customers); // Assuming response.data.customers is an array of customer objects
+        console.log("Customer data:", response.data.customers);
       })
       .catch((error) => {
         console.error("Error fetching customer data:", error);
@@ -55,21 +64,22 @@ const CustomerAutocomplete = () => {
     setOpen(false);
     Swal.fire({
       title: "Customer Selection",
-      text: "Is this an existing customer or a new customer?",
+      text: "Is this an existing customer, a new customer, or a guest customer?",
       icon: "question",
+      showDenyButton: true,
       showCancelButton: true,
       confirmButtonText: "Existing Customer",
+      denyButtonText: "Guest Customer",
       cancelButtonText: "New Customer",
       backdrop: false,
-      BackdropProps: {
-        invisible: true, // This will prevent backdrop click
-      },
       customClass: {
         popup: "z-50", // Apply Tailwind CSS class to adjust z-index
       },
     }).then((result) => {
       if (result.isConfirmed) {
         handleExistingCustomer();
+      } else if (result.isDenied) {
+        handleGuestCustomer();
       } else if (result.dismiss === Swal.DismissReason.cancel) {
         handleNewCustomer();
       }
@@ -83,40 +93,30 @@ const CustomerAutocomplete = () => {
       html: (
         <Autocomplete
           options={customers}
-          getOptionLabel={(option) => option.Firstname}
-          onChange={(event, value) => setSelectedCustomer(value)}
+          getOptionLabel={(option) => option.FirstName}
+          onChange={(e, value) => setSelectedCustomer(value)}
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Search Customer"
-              value={selectedCustomer}
+              label="Search"
+              variant="outlined"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                },
+              }}
             />
           )}
         />
       ),
-      showCancelButton: true,
-
-      confirmButtonText: "Select",
-      preConfirm: () => {
-        if (!selectedCustomer) {
-          Swal.showValidationMessage("Please select a customer");
-        }
-        return selectedCustomer;
-      },
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire(
-          `Customer Selected: ${selectedCustomer.Firstname}`,
-          "",
-          "success"
-        );
-
-        // Handle the selected existing customer logic here
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        handleSelectCustomer();
-      }
     });
   };
+
+  const handleGuestCustomer = () => {
+    setSelectedCustomer("Guest Customer");
+  };
+
+  console.log("selected", selectedCustomer);
 
   const handleNewCustomer = () => {
     setOpen(true);
@@ -130,17 +130,17 @@ const CustomerAutocomplete = () => {
     const { name, value } = e.target;
     let newValue = value;
     if (name === "FirstName" || name === "LastName") {
-      newValue = newValue.slice(0, 20); // Limit to 20 characters for Address
+      newValue = newValue.slice(0, 20); // Limit to 20 characters
       newValue = newValue.replace(/[0-9]/g, ""); // Allow only alphabets
     } else if (name === "PhoneNumber") {
       newValue = newValue.replace(/[^0-9]/g, ""); // Allow only numbers
     } else if (name === "Username") {
-      newValue = newValue.slice(0, 25); // Limit to 15 characters for Address
+      newValue = newValue.slice(0, 25); // Limit to 25 characters
       newValue = newValue.replace(/\s/g, ""); // Remove spaces
     } else if (name === "Address") {
-      newValue = newValue.slice(0, 100); // Limit to 100 characters for Address
+      newValue = newValue.slice(0, 100); // Limit to 100 characters
     } else if (name === "Email") {
-      newValue = newValue.slice(0, 50); // Limit to 50 characters for Email
+      newValue = newValue.slice(0, 50); // Limit to 50 characters
     }
     setUserData({ ...userData, [name]: newValue });
     setErrors({ ...errors, [name]: "" }); // Clear the error when input changes
@@ -191,6 +191,7 @@ const CustomerAutocomplete = () => {
   };
 
   const handleAddUser = async () => {
+    console.log(userData);
     if (validateForm()) {
       try {
         const response = await fetch(
@@ -208,6 +209,7 @@ const CustomerAutocomplete = () => {
           // User added successfully
           const data = await response.json();
           console.log("User added:", data);
+          setSelectedCustomer(userData.FirstName);
           Swal.fire({
             icon: "success",
             title: "User Added Successfully!",
@@ -219,8 +221,6 @@ const CustomerAutocomplete = () => {
             },
           }).then(() => {
             handleClose(); // Close the dialog box
-            window.location.reload(); // Reload the table data
-            setTableDataChanged((prevState) => !prevState); // <--- Add this line to update the tableDataChanged state
           });
         } else if (response.status === 400) {
           // Error due to existing fields
@@ -265,28 +265,12 @@ const CustomerAutocomplete = () => {
                   "9999"; // Adjust z-index here
               },
             });
-          } else if (errors.PhoneNumber) {
-            Swal.fire({
-              icon: "error",
-              title: "User Addition Failed",
-              text: errors.PhoneNumber,
-              customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
-              },
-              didOpen: () => {
-                document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
-              },
-            });
           } else {
-            // Handle other validation errors
+            // Display generic error message
             Swal.fire({
               icon: "error",
               title: "User Addition Failed",
-              text: "",
-              html: Object.values(errors)
-                .map((error) => `<div>${error}</div>`)
-                .join(""),
+              text: "An error occurred while adding the user.",
               customClass: {
                 popup: "z-50", // Apply Tailwind CSS class to adjust z-index
               },
@@ -297,8 +281,8 @@ const CustomerAutocomplete = () => {
             });
           }
         } else {
-          // Other server-side error
-          console.error("Failed to add user");
+          // Handle other response errors
+          console.error("Failed to add user:", response.status);
           Swal.fire({
             icon: "error",
             title: "User Addition Failed",
@@ -312,13 +296,11 @@ const CustomerAutocomplete = () => {
           });
         }
       } catch (error) {
-        // Handle network or unexpected errors
         console.error("Error adding user:", error);
-        let errorMessage = "An error occurred while adding the user.";
         Swal.fire({
           icon: "error",
           title: "User Addition Failed",
-          text: errorMessage,
+          text: "An error occurred while adding the user.",
           customClass: {
             popup: "z-50", // Apply Tailwind CSS class to adjust z-index
           },
@@ -327,19 +309,42 @@ const CustomerAutocomplete = () => {
           },
         });
       }
+    } else {
+      // Validation failed, display an error message or handle accordingly
+      Swal.fire({
+        icon: "error",
+        title: "Validation Failed",
+        text: "Please correct the errors in the form.",
+        customClass: {
+          popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+        },
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "9999"; // Adjust z-index here
+        },
+      });
     }
   };
+  // Call handleSelectCustomer directly
 
-  const handlePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  window.onload = function () {
-    handleSelectCustomer();
-  };
+  console.log("selected Customer", selectedCustomer);
 
   return (
-    <>
+    <div>
+      {!selectedCustomer && (
+        <Button
+          variant="contained"
+          onClick={handleSelectCustomer}
+          size="small"
+          sx={{
+            "&.MuiButtonBase-root": {
+              borderRadius: "8px",
+            },
+          }}
+        >
+          Select Customer
+        </Button>
+      )}
+
       <Dialog
         open={open}
         aria-labelledby="form-dialog-title"
@@ -353,7 +358,7 @@ const CustomerAutocomplete = () => {
           id="form-dialog-title"
           className="text-center font-extrabold"
         >
-          User Registration
+          Customer Registration
         </DialogTitle>
         <div className="mb-3">
           <DialogContent>
@@ -476,7 +481,7 @@ const CustomerAutocomplete = () => {
             </div>
             <div className="w-1/2">
               <Primarybutton
-                onClick={handleSelectCustomer}
+                onClick={handleClose}
                 fullWidth="0"
                 text="Cancel"
                 color="red"
@@ -487,7 +492,7 @@ const CustomerAutocomplete = () => {
           </div>
         </DialogActions>
       </Dialog>
-    </>
+    </div>
   );
 };
 

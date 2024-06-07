@@ -25,7 +25,7 @@ function PrimaryButton({
   return (
     <div className="flex justify-center items-center">
       <button
-        className={`rounded-lg   h-9 transition text-white px-4 cursor-pointer ${
+        className={`rounded-lg   h-9 transition text-white px-5 cursor-pointer ${
           fullWidth ? "w-5/6" : ""
         }`}
         style={{

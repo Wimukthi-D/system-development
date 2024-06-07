@@ -28,15 +28,20 @@ const Billing = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [selectedItems, setSelectedItems] = useState([]);
+  const [userBranch, setUserBranch] = useState(null);
+  const [customer, setCustomer] = useState(null);
+  const [customerID, setCustomerID] = useState(null);
+
+  const handleCustomerSelect = (customer) => {
+    console.log("Selected customer:", customer.FirstName);
+    setCustomer(customer.FirstName);
+  };
 
   const storedData = localStorage.getItem("token");
   const parsedData = JSON.parse(storedData);
   const token = parsedData.token;
   const decodedToken = jwtDecode(token);
   const UserFirstname = decodedToken.FirstName;
-  const BranchName =
-    inventoryData.find((item) => item.branchID === decodedToken.branchID)
-      ?.branchName || "";
 
   useEffect(() => {
     axios
@@ -44,6 +49,11 @@ const Billing = () => {
       .then((response) => {
         const data = response.data.stocks;
         setInventoryData(data);
+        const branchName =
+          data.find((item) => item.branchID === decodedToken.branchID)
+            ?.branchName || "";
+        setSelectedBranch(branchName);
+        setUserBranch(branchName);
         setFilteredData(data);
         setLoading(false);
       })
@@ -51,7 +61,7 @@ const Billing = () => {
         console.error("Error fetching inventory data:", error);
         setLoading(false);
       });
-  }, []);
+  }, [decodedToken.branchID]);
 
   useEffect(() => {
     filterData();
@@ -103,7 +113,7 @@ const Billing = () => {
   };
 
   const columns = [
-    { field: "stockID", headerName: "Stock ID", width: 100 },
+    { field: "stockID", headerName: "Batch No.", width: 100 },
     { field: "drugname", headerName: "Drug Name", width: 150 },
     { field: "genericName", headerName: "Generic Name", width: 130 },
     { field: "quantity", headerName: "Quantity", width: 100 },
@@ -141,7 +151,7 @@ const Billing = () => {
               )}
             />
             <Select
-              defaultValue=""
+              value={selectedBranch}
               onChange={(e) => setSelectedBranch(e.target.value)}
               displayEmpty
               style={{ marginRight: 16, borderRadius: "8px" }}
@@ -196,17 +206,18 @@ const Billing = () => {
             }}
           />
         </div>
-        <div className="flex flex-col w-2/5 p-2 h-auto">
-          <div className="flex-col w-full rounded-lg p-4 h-auto bg-[#f5f5f5]">
+        <div className="flex flex-col w-2/5 p-2 h-full">
+          <div className="flex-col w-full rounded-lg p-4 h-full bg-[#f5f5f5]">
             <div className="flex flex-col justify-start mb-4 p-4 bg-gray-200 rounded-lg">
               <div>
                 <strong>Cashier:</strong> {UserFirstname}
               </div>
-              <div>
-                <strong>Customer:</strong> {NewCustomerPopup()}
+              <div className="flex gap-1">
+                <strong>Customer:</strong>
+                <NewCustomerPopup onCustomerSelect={handleCustomerSelect} /> {customer}
               </div>
               <div>
-                <strong>Branch:</strong> {BranchName}
+                <strong>Branch:</strong> {userBranch}
               </div>
               <div className="flex justify-between">
                 <div>
@@ -218,10 +229,13 @@ const Billing = () => {
               </div>
               <div></div>
             </div>
-            <div>
+            <div className="flex flex-col w-full h-full ">
               <Invoice
                 selectedItems={selectedItems}
                 setSelectedItems={setSelectedItems}
+                branchID={decodedToken.branchID}
+                customerID={customerID}
+                cashierID={decodedToken.id}
               />
             </div>
           </div>
