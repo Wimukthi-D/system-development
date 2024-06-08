@@ -6,6 +6,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import Invoice from "../../Components/Invoice";
 import NewCustomerPopup from "../../Components/NewCustomerPopup";
+import { SnackbarProvider, useSnackbar } from "notistack";
 
 const VISIBLE_FIELDS = [
   "stockID",
@@ -31,10 +32,28 @@ const Billing = () => {
   const [userBranch, setUserBranch] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [customerID, setCustomerID] = useState(null);
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   const handleCustomerSelect = (customer) => {
-    console.log("Selected customer:", customer.FirstName);
+    setSelectedCustomer(customer);
+    console.log("Selected customer:", customer);
+
+    if (customer === "Guest Customer") {
+      setCustomerID(null);
+      return;
+    }
+
+    setCustomerID(customer.customerID);
     setCustomer(customer.FirstName);
+  };
+
+  const handleClickVariant = (variant) => () => {
+    // variant could be success, error, warning, info, or default
+    enqueueSnackbar("You can only add items from your own branch.", {
+      variant,
+    });
   };
 
   const storedData = localStorage.getItem("token");
@@ -93,6 +112,12 @@ const Billing = () => {
 
   const handleRowClick = (params) => {
     const selectedItem = params.row;
+    if (selectedItem.branchName !== userBranch) {
+      alert("You can only add items from your own branch.");
+      handleClickVariant("error");
+      return;
+    }
+
     const existingItem = selectedItems.find(
       (item) => item.stockID === selectedItem.stockID
     );
@@ -214,7 +239,10 @@ const Billing = () => {
               </div>
               <div className="flex gap-1">
                 <strong>Customer:</strong>
-                <NewCustomerPopup onCustomerSelect={handleCustomerSelect} /> {customer}
+                <NewCustomerPopup
+                  onCustomerSelect={handleCustomerSelect}
+                />{" "}
+                {customer}
               </div>
               <div>
                 <strong>Branch:</strong> {userBranch}
@@ -245,4 +273,4 @@ const Billing = () => {
   );
 };
 
-export default Billing;
+export default Billing;  

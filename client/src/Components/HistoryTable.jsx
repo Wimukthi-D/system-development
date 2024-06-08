@@ -15,6 +15,8 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import { jwtDecode } from "jwt-decode";
+import { Select, MenuItem, TextField, Autocomplete } from "@mui/material";
 
 const HistoryTable = () => {
   const [history, setHistory] = useState([]);
@@ -22,8 +24,25 @@ const HistoryTable = () => {
   const [customerMap, setCustomerMap] = useState({});
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [branchFilter, setBranchFilter] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
+    fetchHistory();
+    fetchCustomers();
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decoded = jwtDecode(token);
+      const userBranch = decoded.branchName;
+      setBranchFilter(userBranch);
+    }
+
     fetchHistory();
     fetchCustomers();
   }, []);
@@ -83,67 +102,199 @@ const HistoryTable = () => {
     setOrderBy(property);
   };
 
-  const sortedHistory = (rows) => {
-    const comparator = (a, b) => {
-      if (order === "asc") {
-        return a[orderBy] > b[orderBy] ? 1 : -1;
-      } else {
-        return a[orderBy] < b[orderBy] ? 1 : -1;
-      }
-    };
-    return rows.sort(comparator);
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
   };
 
+  const handleBranchChange = (event) => {
+    setBranchFilter(event.target.value);
+  };
+
+  const filteredHistory = () => {
+    return Object.keys(history).filter((saleID) => {
+      const rows = history[saleID];
+      const firstRow = rows[0];
+
+      const matchesSearchQuery =
+        searchInput === "" ||
+        firstRow.drugname.toLowerCase().includes(searchInput.toLowerCase()) ||
+        firstRow.genericName.toLowerCase().includes(searchInput.toLowerCase());
+
+      const matchesBranchFilter =
+        selectedBranch === "" || firstRow.branchName === selectedBranch;
+
+      const matchesCategoryFilter =
+        selectedCategory === "" || firstRow.categoryName === selectedCategory;
+
+      return matchesSearchQuery && matchesBranchFilter && matchesCategoryFilter;
+    });
+  };
+
+  const sortedHistory = (filteredRows) => {
+    const comparator = (a, b) => {
+      if (orderBy === "saleID" || orderBy === "total") {
+        const valueA = orderBy === "total" ? history[a].total : parseInt(a, 10);
+        const valueB = orderBy === "total" ? history[b].total : parseInt(b, 10);
+
+        if (order === "asc") {
+          return valueA > valueB ? 1 : -1;
+        } else {
+          return valueA < valueB ? 1 : -1;
+        }
+      }
+
+      if (order === "asc") {
+        return history[a][0][orderBy] > history[b][0][orderBy] ? 1 : -1;
+      } else {
+        return history[a][0][orderBy] < history[b][0][orderBy] ? 1 : -1;
+      }
+    };
+
+    return filteredRows.sort(comparator);
+  };
+
+  <TableBody>
+    {sortedHistory(filteredHistory()).map((saleID) => (
+      <Row
+        key={saleID}
+        saleID={saleID}
+        rows={history[saleID]}
+        customerMap={customerMap}
+      />
+    ))}
+  </TableBody>;
+
   return (
-    <TableContainer component={Paper}>
-      <Table aria-label="collapsible table">
-        <TableHead>
-          <TableRow sx={{ backgroundColor: "#bdbdbd" }}>
-            <TableCell />
-            <TableCell sortDirection={orderBy === "saleID" ? order : false}>
-              <TableSortLabel
-                active={orderBy === "saleID"}
-                direction={orderBy === "saleID" ? order : "asc"}
-                onClick={() => handleRequestSort("saleID")}
-              >
-                <strong>Sale ID</strong>
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <strong>Total (LKR)</strong>
-            </TableCell>
-            <TableCell sortDirection={orderBy === "branchName" ? order : false}>
-              <TableSortLabel
-                active={orderBy === "branchName"}
-                direction={orderBy === "branchName" ? order : "asc"}
-                onClick={() => handleRequestSort("branchName")}
-              >
-                <strong>Branch Name</strong>
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <strong>Cashier</strong>
-            </TableCell>
-            <TableCell>
-              <strong>Date Time</strong>
-            </TableCell>
-            <TableCell>
-              <strong>Customer Name</strong>
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {sortedHistory(Object.keys(history)).map((saleID) => (
-            <Row
-              key={saleID}
-              saleID={saleID}
-              rows={history[saleID]}
-              customerMap={customerMap}
+    <div>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <Autocomplete
+          freeSolo
+          options={[]}
+          onInputChange={(event, newInputValue) =>
+            setSearchInput(newInputValue)
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Search"
+              variant="outlined"
+              style={{ width: 300, marginRight: 16, borderRadius: "8px" }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                },
+              }}
             />
+          )}
+        />
+        <Select
+          value={selectedBranch}
+          onChange={(e) => setSelectedBranch(e.target.value)}
+          displayEmpty
+          style={{ marginRight: 16, borderRadius: "8px" }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "8px",
+            },
+          }}
+        >
+          <MenuItem value="">All Branches</MenuItem>
+          {Array.from(
+            new Set(
+              Object.values(history).flatMap((rows) =>
+                rows.map((row) => row.branchName)
+              )
+            )
+          ).map((branch) => (
+            <MenuItem key={branch} value={branch}>
+              {branch}
+            </MenuItem>
           ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+        </Select>
+        <Select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          displayEmpty
+          style={{ marginRight: 16, borderRadius: "8px" }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "8px",
+            },
+          }}
+        >
+          <MenuItem value="">All Categories</MenuItem>
+          {Array.from(
+            new Set(
+              Object.values(history).flatMap((rows) =>
+                rows.map((row) => row.categoryName)
+              )
+            )
+          ).map((category) => (
+            <MenuItem key={category} value={category}>
+              {category}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
+
+      <TableContainer component={Paper}>
+        <Table aria-label="collapsible table">
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#bdbdbd" }}>
+              <TableCell />
+              <TableCell sortDirection={orderBy === "saleID" ? order : false}>
+                <TableSortLabel
+                  active={orderBy === "saleID"}
+                  direction={orderBy === "saleID" ? order : "asc"}
+                  onClick={() => handleRequestSort("saleID")}
+                >
+                  <strong>Sale ID</strong>
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sortDirection={orderBy === "total" ? order : false}>
+                <TableSortLabel
+                  active={orderBy === "total"}
+                  direction={orderBy === "total" ? order : "asc"}
+                  onClick={() => handleRequestSort("total")}
+                >
+                  <strong>Total (LKR)</strong>
+                </TableSortLabel>
+              </TableCell>
+              <TableCell
+                sortDirection={orderBy === "branchName" ? order : false}
+              >
+                <TableSortLabel
+                  active={orderBy === "branchName"}
+                  direction={orderBy === "branchName" ? order : "asc"}
+                  onClick={() => handleRequestSort("branchName")}
+                >
+                  <strong>Branch Name</strong>
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <strong>Cashier</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Date Time</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Customer Name</strong>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sortedHistory(Object.keys(history)).map((saleID) => (
+              <Row
+                key={saleID}
+                saleID={saleID}
+                rows={history[saleID]}
+                customerMap={customerMap}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div>
   );
 };
 

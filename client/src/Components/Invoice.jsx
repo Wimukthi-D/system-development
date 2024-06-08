@@ -64,6 +64,11 @@ const Invoice = ({
     return total - (total * discount) / 100;
   };
 
+  const handleCardPayment = () => {
+    setPaymentMethod("card");
+    setAmountPaid(calculateGrandTotal());
+  };
+
   const handleContinue = () => {
     const data = selectedItems.map((item) => ({
       productID: item.productID,
@@ -239,7 +244,9 @@ const Invoice = ({
             </Button>
             <Button
               variant={paymentMethod === "card" ? "contained" : "outlined"}
-              onClick={() => setPaymentMethod("card")}
+              onClick={() => {
+                handleCardPayment();
+              }}
               style={{ borderRadius: "10px" }}
               fullWidth
             >
@@ -253,19 +260,25 @@ const Invoice = ({
         <div className="flex w-full justify-center">
           <div className=" flex justify-center w-1/2 px-5 mt-4">
             <ThemeProvider theme={theme}>
-              <Button
-                variant="contained"
-                fullWidth
-                color="LGreen"
-                style={{ borderRadius: "10px", textEmphasisColor: { grey } }}
-                onClick={handleContinue}
-                disabled={
-                  !paymentMethod ||
-                  (paymentMethod === "cash" && amountPaid <= 0)
-                }
-              >
-                Continue
-              </Button>
+              {
+                <>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    color="LGreen"
+                    style={{
+                      borderRadius: "10px",
+                      textEmphasisColor: { grey },
+                    }}
+                    onClick={handleContinue}
+                    disabled={
+                      !paymentMethod || amountPaid < calculateGrandTotal()
+                    }
+                  >
+                    Continue
+                  </Button>
+                </>
+              }
             </ThemeProvider>
           </div>
         </div>

@@ -94,7 +94,10 @@ const CustomerAutocomplete = ({ onCustomerSelect }) => {
         <Autocomplete
           options={customers}
           getOptionLabel={(option) => option.FirstName}
-          onChange={(e, value) => setSelectedCustomer(value)}
+          onChange={(e, value) => {
+            setSelectedCustomer(value);
+            onCustomerSelect(value.customerID); // Pass the customerID
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -210,6 +213,7 @@ const CustomerAutocomplete = ({ onCustomerSelect }) => {
           const data = await response.json();
           console.log("User added:", data);
           setSelectedCustomer(userData.FirstName);
+          onCustomerSelect(data.customerID); // Pass the newly created customer's ID
           Swal.fire({
             icon: "success",
             title: "User Added Successfully!",
@@ -324,6 +328,7 @@ const CustomerAutocomplete = ({ onCustomerSelect }) => {
       });
     }
   };
+
   // Call handleSelectCustomer directly
 
   console.log("selected Customer", selectedCustomer);

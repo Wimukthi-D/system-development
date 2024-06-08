@@ -156,6 +156,24 @@ router.get("/getBranch", (req, res) => {
   });
 });
 
+router.put("/getCustomerID/:FirstName", (req, res) => {
+  const FirstName  = req.params.FirstName;
+  connection.query(
+    `SELECT customerID FROM customer WHERE userID = (SELECT userID FROM user WHERE FirstName = ? && Usertype = 'Customer')`,
+    [FirstName],
+    (err, rows) => {
+      if (err) {
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+
+      // If no error, send the retrieved customer data in the response
+      res.status(200).json({ customerID: rows[0].customerID });
+    }
+  );
+});
+
 router.get("/getHistory", (req, res) => {
   connection.query(
     `SELECT s.saleID, s.branchID,b.branchName, u.FirstName,DATE_FORMAT(s.date_time, '%Y/%m/%d  @%H:%i') as date_time
