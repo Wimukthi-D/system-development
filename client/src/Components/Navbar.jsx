@@ -98,9 +98,9 @@ function Navbar() {
           { text: "STOCKS", route: "/manager-dashboard/Stocks" },
           { text: "PRODUCTS", route: "/manager-dashboard/Products" },
           { text: "STAFF MANAGEMENT", route: "/manager-dashboard/users" },
-          { text: "SUPPLIER ORDERS", route: "/manager-dashboard/orders" },
+          { text: "ORDERS", route: "/manager-dashboard/orders" },
           { text: "ANALYSIS", route: "/manager-dashboard" },
-          { text: "ORDER HISTORY", route: "/manager-dashboard/orderhistory" },
+          { text: "SALES HISTORY", route: "/manager-dashboard/salehistory" },
         ];
         break;
       case "Cashier":
@@ -114,6 +114,7 @@ function Navbar() {
           { text: "STOCKS", route: "/Staff-dashboard" },
           { text: "PRODUCTS", route: "/Staff-dashboard/Products" },
           { text: "STAFF", route: "/staff-dashboard/users" },
+          { text: "ORDERS", route: "/Staff-dashboard/orders" },
         ];
         break;
       case "Supplier":

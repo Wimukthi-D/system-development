@@ -8,7 +8,7 @@ const App = () => {
       <div>
         <Navbar />
       </div>
-      <div className="p-20">
+      <div className="px-20 py-10">
         <HistoryTable />
       </div>
     </div>

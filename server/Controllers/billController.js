@@ -202,25 +202,11 @@ router.get("/getCustomer", (req, res) => {
       }
 
       // If no error, send the retrieved customer data in the response
-      res.status(200).json({ customers: rows });
+      res.status(200).json({ customers: rows }); 
     }
   );
 });
 
-router.get("/getCustomer", (req, res) => {
-  connection.query(
-    `SELECT FirstName FROM user WHERE Usertype = 'Customer'`,
-    (err, rows) => {
-      if (err) {
-        console.error("Error querying MySQL database:", err);
-        res.status(500).send("Internal Server Error");
-        return;
-      }
 
-      // If no error, send the retrieved customer data in the response
-      res.status(200).json({ customers: rows });
-    }
-  );
-});
 
 module.exports = router;

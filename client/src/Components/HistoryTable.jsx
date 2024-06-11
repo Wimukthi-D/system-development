@@ -11,12 +11,18 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { jwtDecode } from "jwt-decode";
-import { Select, MenuItem, TextField, Autocomplete } from "@mui/material";
+import {
+  Select,
+  MenuItem,
+  TextField,
+  Autocomplete,
+  Button,
+  TablePagination,
+} from "@mui/material";
 
 const HistoryTable = () => {
   const [history, setHistory] = useState([]);
@@ -29,6 +35,10 @@ const HistoryTable = () => {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [expandedRows, setExpandedRows] = useState([]);
+  const [isAllExpanded, setIsAllExpanded] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
     fetchHistory();
@@ -46,6 +56,15 @@ const HistoryTable = () => {
     fetchHistory();
     fetchCustomers();
   }, []);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const fetchHistory = async () => {
     try {
@@ -118,7 +137,12 @@ const HistoryTable = () => {
       const matchesSearchQuery =
         searchInput === "" ||
         firstRow.drugname.toLowerCase().includes(searchInput.toLowerCase()) ||
-        firstRow.genericName.toLowerCase().includes(searchInput.toLowerCase());
+        firstRow.genericName
+          .toLowerCase()
+          .includes(searchInput.toLowerCase()) ||
+        firstRow.branchName.toLowerCase().includes(searchInput.toLowerCase()) ||
+        firstRow.FirstName.toLowerCase().includes(searchInput.toLowerCase()) ||
+        firstRow.saleID.toString().includes(searchInput.toLowerCase());
 
       const matchesBranchFilter =
         selectedBranch === "" || firstRow.branchName === selectedBranch;
@@ -153,20 +177,18 @@ const HistoryTable = () => {
     return filteredRows.sort(comparator);
   };
 
-  <TableBody>
-    {sortedHistory(filteredHistory()).map((saleID) => (
-      <Row
-        key={saleID}
-        saleID={saleID}
-        rows={history[saleID]}
-        customerMap={customerMap}
-      />
-    ))}
-  </TableBody>;
+  const toggleExpandAll = () => {
+    if (isAllExpanded) {
+      setExpandedRows([]);
+    } else {
+      setExpandedRows(Object.keys(history));
+    }
+    setIsAllExpanded(!isAllExpanded);
+  };
 
   return (
     <div>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+      <Box sx={{ display: "flex", mb: 2 }}>
         <Autocomplete
           freeSolo
           options={[]}
@@ -177,6 +199,7 @@ const HistoryTable = () => {
             <TextField
               {...params}
               label="Search"
+              size="small"
               variant="outlined"
               style={{ width: 300, marginRight: 16, borderRadius: "8px" }}
               sx={{
@@ -192,6 +215,7 @@ const HistoryTable = () => {
           onChange={(e) => setSelectedBranch(e.target.value)}
           displayEmpty
           style={{ marginRight: 16, borderRadius: "8px" }}
+          size="small"
           sx={{
             "& .MuiOutlinedInput-root": {
               borderRadius: "8px",
@@ -211,37 +235,26 @@ const HistoryTable = () => {
             </MenuItem>
           ))}
         </Select>
-        <Select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          displayEmpty
-          style={{ marginRight: 16, borderRadius: "8px" }}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "8px",
-            },
-          }}
-        >
-          <MenuItem value="">All Categories</MenuItem>
-          {Array.from(
-            new Set(
-              Object.values(history).flatMap((rows) =>
-                rows.map((row) => row.categoryName)
-              )
-            )
-          ).map((category) => (
-            <MenuItem key={category} value={category}>
-              {category}
-            </MenuItem>
-          ))}
-        </Select>
       </Box>
 
       <TableContainer component={Paper}>
         <Table aria-label="collapsible table">
           <TableHead>
             <TableRow sx={{ backgroundColor: "#bdbdbd" }}>
-              <TableCell />
+              <TableCell>
+                <IconButton
+                  aria-label="expand row"
+                  size="small"
+                  onClick={toggleExpandAll}
+                >
+                  {isAllExpanded ? (
+                    <KeyboardArrowUpIcon />
+                  ) : (
+                    <KeyboardArrowDownIcon />
+                  )}
+                </IconButton>
+              </TableCell>
+
               <TableCell sortDirection={orderBy === "saleID" ? order : false}>
                 <TableSortLabel
                   active={orderBy === "saleID"}
@@ -283,12 +296,25 @@ const HistoryTable = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedHistory(Object.keys(history)).map((saleID) => (
+            {sortedHistory(filteredHistory()).map((saleID) => (
               <Row
                 key={saleID}
                 saleID={saleID}
                 rows={history[saleID]}
                 customerMap={customerMap}
+                isExpanded={expandedRows.includes(saleID)}
+                toggleRowExpansion={() => {
+                  const currentIndex = expandedRows.indexOf(saleID);
+                  const newExpandedRows = [...expandedRows];
+
+                  if (currentIndex === -1) {
+                    newExpandedRows.push(saleID);
+                  } else {
+                    newExpandedRows.splice(currentIndex, 1);
+                  }
+
+                  setExpandedRows(newExpandedRows);
+                }}
               />
             ))}
           </TableBody>
@@ -298,8 +324,7 @@ const HistoryTable = () => {
   );
 };
 
-const Row = ({ saleID, rows, customerMap }) => {
-  const [open, setOpen] = useState(false);
+const Row = ({ saleID, rows, customerMap, isExpanded, toggleRowExpansion }) => {
   const firstRow = rows[0];
   const total = rows.total; // Access the total calculated in fetchHistory
 
@@ -310,9 +335,9 @@ const Row = ({ saleID, rows, customerMap }) => {
           <IconButton
             aria-label="expand row"
             size="small"
-            onClick={() => setOpen(!open)}
+            onClick={toggleRowExpansion}
           >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
         <TableCell>{saleID}</TableCell>
@@ -324,7 +349,7 @@ const Row = ({ saleID, rows, customerMap }) => {
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
+          <Collapse in={isExpanded} timeout="auto" unmountOnExit>
             <Box
               sx={{
                 margin: 1,
@@ -334,14 +359,6 @@ const Row = ({ saleID, rows, customerMap }) => {
               }}
             >
               <Box sx={{ width: "50%" }}>
-                {/* <Typography
-                  variant="h6"
-                  gutterBottom
-                  component="div"
-                  align="left"
-                >
-                  Details
-                </Typography> */}
                 <Table size="small" aria-label="details">
                   <TableHead>
                     <TableRow>
@@ -395,6 +412,8 @@ Row.propTypes = {
     })
   ).isRequired,
   customerMap: PropTypes.object.isRequired,
+  isExpanded: PropTypes.bool.isRequired,
+  toggleRowExpansion: PropTypes.func.isRequired,
 };
 
 export default HistoryTable;

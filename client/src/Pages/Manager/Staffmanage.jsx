@@ -330,7 +330,7 @@ function Staffmanage() {
               <DialogTitle
                 id="form-dialog-title"
                 className="text-center font-extrabold"
-                >
+              >
                 User Registration
               </DialogTitle>
               <div className="mb-3">

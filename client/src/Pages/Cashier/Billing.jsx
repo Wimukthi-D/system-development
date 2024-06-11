@@ -6,7 +6,8 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import Invoice from "../../Components/Invoice";
 import NewCustomerPopup from "../../Components/NewCustomerPopup";
-import { SnackbarProvider, useSnackbar } from "notistack";
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 
 const VISIBLE_FIELDS = [
   "stockID",
@@ -32,9 +33,9 @@ const Billing = () => {
   const [userBranch, setUserBranch] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [customerID, setCustomerID] = useState(null);
-  const { enqueueSnackbar } = useSnackbar();
-
+  const [showAlert, setShowAlert] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [open, setOpen] = useState(false);
 
   const handleCustomerSelect = (customer) => {
     setSelectedCustomer(customer);
@@ -49,11 +50,11 @@ const Billing = () => {
     setCustomer(customer.FirstName);
   };
 
-  const handleClickVariant = (variant) => () => {
-    // variant could be success, error, warning, info, or default
-    enqueueSnackbar("You can only add items from your own branch.", {
-      variant,
-    });
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpen(false);
   };
 
   const storedData = localStorage.getItem("token");
@@ -113,8 +114,7 @@ const Billing = () => {
   const handleRowClick = (params) => {
     const selectedItem = params.row;
     if (selectedItem.branchName !== userBranch) {
-      alert("You can only add items from your own branch.");
-      handleClickVariant("error");
+      setOpen(true);
       return;
     }
 
@@ -151,6 +151,11 @@ const Billing = () => {
     <div className="flex flex-col h-screen w-screen">
       <div>
         <Navbar />
+        <Snackbar open={open} autoHideDuration={2000} onClose={handleClose}>
+          <Alert onClose={handleClose} severity="warning">
+            You cannot add items from other branches!
+          </Alert>
+        </Snackbar>
       </div>
       <div className="flex h-full w-full">
         <div className="flex flex-col w-3/5 p-4">
@@ -273,4 +278,4 @@ const Billing = () => {
   );
 };
 
-export default Billing;  
+export default Billing;

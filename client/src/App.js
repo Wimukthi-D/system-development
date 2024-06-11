@@ -18,6 +18,7 @@ import NotFoundPage from "./Pages/NotFound.jsx";
 import NewCustomerPopup from "./Components/NewCustomerPopup.jsx";
 import Profile from "./Pages/Profile.jsx";
 import OrderHistory from "./Pages/OrderHistory.jsx";
+import Supplier from "./Pages/Supplier/Supplier.jsx";
 
 const publicRoutes = ["/", "/login", "/*"];
 
@@ -132,7 +133,7 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
               />
               <Route
                 exact
-                path="/manager-dashboard/orderhistory"
+                path="/manager-dashboard/salehistory"
                 element={<OrderHistory />}
               />
             </>
@@ -166,11 +167,16 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
                 path="/Staff-dashboard/Profile"
                 element={<Profile />}
               />
+              <Route
+                exact
+                path="/Staff-dashboard/orders"
+                element={<Orders />}
+              />
             </>
           )}
           {UserType === "Supplier" && (
             <>
-              <Route exact path="/Supplier-dashboard" element={<Orders />} />
+              <Route exact path="/Supplier-dashboard" element={<Supplier />} />
               <Route
                 exact
                 path="/Supplier-dashboard/Profile"
