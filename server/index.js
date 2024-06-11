@@ -25,7 +25,9 @@ const authController = require("./Controllers/authController");
 const stockController = require("./Controllers/stockController");
 const billController = require("./Controllers/billController");
 const tokenController = require("./Controllers/tokenController");
-
+const chartController = require("./Controllers/chartController");
+const orderController = require("./Controllers/orderController");
+const transferController = require("./Controllers/transferController");
 // Routes
 
 app.use("/api/user", userController);
@@ -33,6 +35,9 @@ app.use("/api/auth", authController);
 app.use("/api/stock", stockController);
 app.use("/api/bill", billController);
 app.use("/api/token", tokenController);
+app.use("/api/chart", chartController);
+app.use("/api/order", orderController);
+app.use("/api/transfer", transferController);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

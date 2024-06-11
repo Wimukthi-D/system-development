@@ -11,10 +11,18 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import { jwtDecode } from "jwt-decode";
+import {
+  Select,
+  MenuItem,
+  TextField,
+  Autocomplete,
+  Button,
+  TablePagination,
+} from "@mui/material";
 
 const HistoryTable = () => {
   const [history, setHistory] = useState([]);
@@ -22,11 +30,41 @@ const HistoryTable = () => {
   const [customerMap, setCustomerMap] = useState({});
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [branchFilter, setBranchFilter] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [expandedRows, setExpandedRows] = useState([]);
+  const [isAllExpanded, setIsAllExpanded] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
     fetchHistory();
     fetchCustomers();
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decoded = jwtDecode(token);
+      const userBranch = decoded.branchName;
+      setBranchFilter(userBranch);
+    }
+
+    fetchHistory();
+    fetchCustomers();
+  }, []);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const fetchHistory = async () => {
     try {
@@ -83,72 +121,210 @@ const HistoryTable = () => {
     setOrderBy(property);
   };
 
-  const sortedHistory = (rows) => {
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleBranchChange = (event) => {
+    setBranchFilter(event.target.value);
+  };
+
+  const filteredHistory = () => {
+    return Object.keys(history).filter((saleID) => {
+      const rows = history[saleID];
+      const firstRow = rows[0];
+
+      const matchesSearchQuery =
+        searchInput === "" ||
+        firstRow.drugname.toLowerCase().includes(searchInput.toLowerCase()) ||
+        firstRow.genericName
+          .toLowerCase()
+          .includes(searchInput.toLowerCase()) ||
+        firstRow.branchName.toLowerCase().includes(searchInput.toLowerCase()) ||
+        firstRow.FirstName.toLowerCase().includes(searchInput.toLowerCase()) ||
+        firstRow.saleID.toString().includes(searchInput.toLowerCase());
+
+      const matchesBranchFilter =
+        selectedBranch === "" || firstRow.branchName === selectedBranch;
+
+      const matchesCategoryFilter =
+        selectedCategory === "" || firstRow.categoryName === selectedCategory;
+
+      return matchesSearchQuery && matchesBranchFilter && matchesCategoryFilter;
+    });
+  };
+
+  const sortedHistory = (filteredRows) => {
     const comparator = (a, b) => {
+      if (orderBy === "saleID" || orderBy === "total") {
+        const valueA = orderBy === "total" ? history[a].total : parseInt(a, 10);
+        const valueB = orderBy === "total" ? history[b].total : parseInt(b, 10);
+
+        if (order === "asc") {
+          return valueA > valueB ? 1 : -1;
+        } else {
+          return valueA < valueB ? 1 : -1;
+        }
+      }
+
       if (order === "asc") {
-        return a[orderBy] > b[orderBy] ? 1 : -1;
+        return history[a][0][orderBy] > history[b][0][orderBy] ? 1 : -1;
       } else {
-        return a[orderBy] < b[orderBy] ? 1 : -1;
+        return history[a][0][orderBy] < history[b][0][orderBy] ? 1 : -1;
       }
     };
-    return rows.sort(comparator);
+
+    return filteredRows.sort(comparator);
+  };
+
+  const toggleExpandAll = () => {
+    if (isAllExpanded) {
+      setExpandedRows([]);
+    } else {
+      setExpandedRows(Object.keys(history));
+    }
+    setIsAllExpanded(!isAllExpanded);
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table aria-label="collapsible table">
-        <TableHead>
-          <TableRow sx={{ backgroundColor: "#bdbdbd" }}>
-            <TableCell />
-            <TableCell sortDirection={orderBy === "saleID" ? order : false}>
-              <TableSortLabel
-                active={orderBy === "saleID"}
-                direction={orderBy === "saleID" ? order : "asc"}
-                onClick={() => handleRequestSort("saleID")}
-              >
-                <strong>Sale ID</strong>
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <strong>Total (LKR)</strong>
-            </TableCell>
-            <TableCell sortDirection={orderBy === "branchName" ? order : false}>
-              <TableSortLabel
-                active={orderBy === "branchName"}
-                direction={orderBy === "branchName" ? order : "asc"}
-                onClick={() => handleRequestSort("branchName")}
-              >
-                <strong>Branch Name</strong>
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <strong>Cashier</strong>
-            </TableCell>
-            <TableCell>
-              <strong>Date Time</strong>
-            </TableCell>
-            <TableCell>
-              <strong>Customer Name</strong>
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {sortedHistory(Object.keys(history)).map((saleID) => (
-            <Row
-              key={saleID}
-              saleID={saleID}
-              rows={history[saleID]}
-              customerMap={customerMap}
+    <div>
+      <Box sx={{ display: "flex", mb: 2 }}>
+        <Autocomplete
+          freeSolo
+          options={[]}
+          onInputChange={(event, newInputValue) =>
+            setSearchInput(newInputValue)
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Search"
+              size="small"
+              variant="outlined"
+              style={{ width: 300, marginRight: 16, borderRadius: "8px" }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                },
+              }}
             />
+          )}
+        />
+        <Select
+          value={selectedBranch}
+          onChange={(e) => setSelectedBranch(e.target.value)}
+          displayEmpty
+          style={{ marginRight: 16, borderRadius: "8px" }}
+          size="small"
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "8px",
+            },
+          }}
+        >
+          <MenuItem value="">All Branches</MenuItem>
+          {Array.from(
+            new Set(
+              Object.values(history).flatMap((rows) =>
+                rows.map((row) => row.branchName)
+              )
+            )
+          ).map((branch) => (
+            <MenuItem key={branch} value={branch}>
+              {branch}
+            </MenuItem>
           ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+        </Select>
+      </Box>
+
+      <TableContainer component={Paper}>
+        <Table aria-label="collapsible table">
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#bdbdbd" }}>
+              <TableCell>
+                <IconButton
+                  aria-label="expand row"
+                  size="small"
+                  onClick={toggleExpandAll}
+                >
+                  {isAllExpanded ? (
+                    <KeyboardArrowUpIcon />
+                  ) : (
+                    <KeyboardArrowDownIcon />
+                  )}
+                </IconButton>
+              </TableCell>
+
+              <TableCell sortDirection={orderBy === "saleID" ? order : false}>
+                <TableSortLabel
+                  active={orderBy === "saleID"}
+                  direction={orderBy === "saleID" ? order : "asc"}
+                  onClick={() => handleRequestSort("saleID")}
+                >
+                  <strong>Sale ID</strong>
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sortDirection={orderBy === "total" ? order : false}>
+                <TableSortLabel
+                  active={orderBy === "total"}
+                  direction={orderBy === "total" ? order : "asc"}
+                  onClick={() => handleRequestSort("total")}
+                >
+                  <strong>Total (LKR)</strong>
+                </TableSortLabel>
+              </TableCell>
+              <TableCell
+                sortDirection={orderBy === "branchName" ? order : false}
+              >
+                <TableSortLabel
+                  active={orderBy === "branchName"}
+                  direction={orderBy === "branchName" ? order : "asc"}
+                  onClick={() => handleRequestSort("branchName")}
+                >
+                  <strong>Branch Name</strong>
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <strong>Cashier</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Date Time</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Customer Name</strong>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sortedHistory(filteredHistory()).map((saleID) => (
+              <Row
+                key={saleID}
+                saleID={saleID}
+                rows={history[saleID]}
+                customerMap={customerMap}
+                isExpanded={expandedRows.includes(saleID)}
+                toggleRowExpansion={() => {
+                  const currentIndex = expandedRows.indexOf(saleID);
+                  const newExpandedRows = [...expandedRows];
+
+                  if (currentIndex === -1) {
+                    newExpandedRows.push(saleID);
+                  } else {
+                    newExpandedRows.splice(currentIndex, 1);
+                  }
+
+                  setExpandedRows(newExpandedRows);
+                }}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div>
   );
 };
 
-const Row = ({ saleID, rows, customerMap }) => {
-  const [open, setOpen] = useState(false);
+const Row = ({ saleID, rows, customerMap, isExpanded, toggleRowExpansion }) => {
   const firstRow = rows[0];
   const total = rows.total; // Access the total calculated in fetchHistory
 
@@ -159,9 +335,9 @@ const Row = ({ saleID, rows, customerMap }) => {
           <IconButton
             aria-label="expand row"
             size="small"
-            onClick={() => setOpen(!open)}
+            onClick={toggleRowExpansion}
           >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
         <TableCell>{saleID}</TableCell>
@@ -173,7 +349,7 @@ const Row = ({ saleID, rows, customerMap }) => {
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
+          <Collapse in={isExpanded} timeout="auto" unmountOnExit>
             <Box
               sx={{
                 margin: 1,
@@ -183,14 +359,6 @@ const Row = ({ saleID, rows, customerMap }) => {
               }}
             >
               <Box sx={{ width: "50%" }}>
-                {/* <Typography
-                  variant="h6"
-                  gutterBottom
-                  component="div"
-                  align="left"
-                >
-                  Details
-                </Typography> */}
                 <Table size="small" aria-label="details">
                   <TableHead>
                     <TableRow>
@@ -244,6 +412,8 @@ Row.propTypes = {
     })
   ).isRequired,
   customerMap: PropTypes.object.isRequired,
+  isExpanded: PropTypes.bool.isRequired,
+  toggleRowExpansion: PropTypes.func.isRequired,
 };
 
 export default HistoryTable;

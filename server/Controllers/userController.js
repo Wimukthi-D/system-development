@@ -137,7 +137,7 @@ router.put('/update/:id', async (req, res, next) => {
                 let errors = {};
 
                 if (existingFields.Username === Username) {
-                    errors.Username = 'Username already exists';
+                    errors.Username = 'Username already exists'; 
                 }
                 
                 if (existingFields.NIC === NIC) {

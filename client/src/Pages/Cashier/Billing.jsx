@@ -6,6 +6,8 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import Invoice from "../../Components/Invoice";
 import NewCustomerPopup from "../../Components/NewCustomerPopup";
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 
 const VISIBLE_FIELDS = [
   "stockID",
@@ -31,10 +33,28 @@ const Billing = () => {
   const [userBranch, setUserBranch] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [customerID, setCustomerID] = useState(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [open, setOpen] = useState(false);
 
   const handleCustomerSelect = (customer) => {
-    console.log("Selected customer:", customer.FirstName);
+    setSelectedCustomer(customer);
+    console.log("Selected customer:", customer);
+
+    if (customer === "Guest Customer") {
+      setCustomerID(null);
+      return;
+    }
+
+    setCustomerID(customer.customerID);
     setCustomer(customer.FirstName);
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpen(false);
   };
 
   const storedData = localStorage.getItem("token");
@@ -93,6 +113,11 @@ const Billing = () => {
 
   const handleRowClick = (params) => {
     const selectedItem = params.row;
+    if (selectedItem.branchName !== userBranch) {
+      setOpen(true);
+      return;
+    }
+
     const existingItem = selectedItems.find(
       (item) => item.stockID === selectedItem.stockID
     );
@@ -126,6 +151,11 @@ const Billing = () => {
     <div className="flex flex-col h-screen w-screen">
       <div>
         <Navbar />
+        <Snackbar open={open} autoHideDuration={2000} onClose={handleClose}>
+          <Alert onClose={handleClose} severity="warning">
+            You cannot add items from other branches!
+          </Alert>
+        </Snackbar>
       </div>
       <div className="flex h-full w-full">
         <div className="flex flex-col w-3/5 p-4">
@@ -214,7 +244,10 @@ const Billing = () => {
               </div>
               <div className="flex gap-1">
                 <strong>Customer:</strong>
-                <NewCustomerPopup onCustomerSelect={handleCustomerSelect} /> {customer}
+                <NewCustomerPopup
+                  onCustomerSelect={handleCustomerSelect}
+                />{" "}
+                {customer}
               </div>
               <div>
                 <strong>Branch:</strong> {userBranch}
