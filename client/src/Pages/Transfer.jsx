@@ -36,6 +36,7 @@ import {
   Alert,
   FormControlLabel,
   Checkbox,
+  Tab,
 } from "@mui/material";
 
 function Row({ row }) {
@@ -44,6 +45,13 @@ function Row({ row }) {
   const [Usertype, setUsertype] = useState(null);
   const [branchID, setBranchID] = useState(null);
   const [userID, setUserID] = useState(null);
+  const [alertOpen, setAlertOpen] = React.useState(false);
+  const [alertSeverity, setAlertSeverity] = React.useState("success");
+  const [alertMessage, setAlertMessage] = React.useState("");
+  const [unitPrices, setUnitPrices] = useState(
+    row.products.map((p) => p.unitprice)
+  );
+  const [note, setNote] = useState(row.note);
 
   React.useEffect(() => {
     const storedData = localStorage.getItem("token");
@@ -68,7 +76,7 @@ function Row({ row }) {
 
   const handleReject = () => {
     axios
-      .put("http://localhost:3001/api/transfer/updatePending", {
+      .post("http://localhost:3001/api/transfer/updatePending", {
         transferID: row.transferID,
         status: "Rejected",
       })
@@ -82,16 +90,58 @@ function Row({ row }) {
 
   const handleConfirm = () => {
     axios
-      .put("http://localhost:3001/api/transfer/updatePending", {
+      .post("http://localhost:3001/api/transfer/updatePending", {
         transferID: row.transferID,
         status: "Confirmed",
+        products: unitPrices.map((price, index) => ({
+          productID: row.products[index].productID,
+          unitprice: price,
+          quantity: row.products[index].quantity,
+        })),
+        note: note,
+      })
+      .then((response) => {
+        console.log(response);
+      })
+      .then((data) => {
+        console.log("Order updated successfully:", data);
+        setAlertMessage("Order updated successfully");
+        setAlertSeverity("success");
+        setAlertOpen(true);
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error("Error declining order:", error);
+        setAlertMessage("Error declining order");
+        setAlertSeverity("error");
+        setAlertOpen(true);
+      });
+  };
+
+  const handleReceived = () => {
+    axios
+      .post("http://localhost:3001/api/transfer/updateConfirmed", {
+        transferID: row.transferID,
+        status: "Received",
+        products: unitPrices.map((price, index) => ({
+          productID: row.products[index].productID,
+          unitprice: price,
+          quantity: row.products[index].quantity,
+        })),
+        branchID: branchID,
       })
       .then((response) => {
         console.log(response);
       })
       .catch((error) => {
-        console.error("Error confirming transfer request:", error);
+        console.error("Error declining order:", error);
       });
+  };
+
+  const handleUnitPriceChange = (index, value) => {
+    const newUnitPrices = [...unitPrices];
+    newUnitPrices[index] = value;
+    setUnitPrices(newUnitPrices);
   };
 
   return (
@@ -106,11 +156,24 @@ function Row({ row }) {
             {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
           </IconButton>
         </TableCell>
+        <TableCell>{row.transferID}</TableCell>
         <TableCell>{row.branchName}</TableCell>
         <TableCell>{row.orderdate}</TableCell>
         <TableCell>{row.confirmdate}</TableCell>
         <TableCell>{row.price}</TableCell>
-        <TableCell>{row.note}</TableCell>
+        <TableCell>
+          <TextField
+            fullWidth
+            disabled={
+              row.status !== "Pending" ||
+              Usertype !== "Manager" ||
+              branchID !== 1
+            }
+            variant="outlined"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </TableCell>
         <TableCell>{row.status}</TableCell>
       </TableRow>
       <TableRow>
@@ -134,36 +197,65 @@ function Row({ row }) {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {row.products.map((product) => (
+                    {row.products.map((product, index) => (
                       <TableRow key={product.productID}>
                         <TableCell>{product.drugname}</TableCell>
                         <TableCell>{product.genericName}</TableCell>
                         <TableCell>{product.quantity}</TableCell>
-                        <TableCell>{product.unitprice}</TableCell>
+                        <TableCell>
+                          <TextField
+                            value={unitPrices[index]}
+                            size="small"
+                            disabled={
+                              row.status !== "Pending" ||
+                              Usertype !== "Manager" ||
+                              branchID !== 1
+                            }
+                            type="number"
+                            onChange={(e) =>
+                              handleUnitPriceChange(index, e.target.value)
+                            }
+                          />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </Box>
 
-              {Usertype === "Manager" && branchID === 1 && (
-                <Box className="flex gap-2" sx={{ margin: 1, width: "20%" }}>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={handleReject}
-                  >
-                    Reject
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={handleConfirm}
-                  >
-                    Confirm
-                  </Button>
-                </Box>
-              )}
+              {Usertype === "Manager" &&
+                branchID === 1 &&
+                row.status === "Pending" && (
+                  <Box className="flex gap-2" sx={{ margin: 1, width: "20%" }}>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      onClick={handleReject}
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={handleConfirm}
+                    >
+                      Confirm
+                    </Button>
+                  </Box>
+                )}
+              {Usertype === "Manager" &&
+                branchID !== 1 &&
+                row.status === "Confirmed" && (
+                  <Box className="flex gap-2" sx={{ margin: 1, width: "20%" }}>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={handleReceived}
+                    >
+                      Received
+                    </Button>
+                  </Box>
+                )}
             </Box>
           </Collapse>
         </TableCell>
@@ -182,7 +274,9 @@ function Transfer() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("success");
   const [productOptions, setProductOptions] = useState([]);
-  const [fields, setFields] = useState([{ product: null, quantity: "" }]);
+  const [fields, setFields] = useState([
+    { product: null, quantity: "", unitprice: "", note: "" },
+  ]);
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [transfers, setTransfers] = useState([]);
   const [status, setStatus] = useState("");
@@ -213,7 +307,7 @@ function Transfer() {
   };
 
   const handleCloseDialog = () => {
-    setFields([{ product: null, quantity: "" }]);
+    setFields([{ product: null, quantity: "", unitprice: "", note: "" }]);
     setAdditionalInfo("");
     setOpen(false);
   };
@@ -231,7 +325,10 @@ function Transfer() {
   }, []);
 
   const handleAddField = () => {
-    setFields([...fields, { product: null, quantity: "" }]);
+    setFields([
+      ...fields,
+      { product: null, quantity: "", unitprice: "", note: "" },
+    ]);
   };
 
   const handleFieldChange = (index, field, value) => {
@@ -245,6 +342,8 @@ function Transfer() {
     const productData = fields.map((field) => ({
       productID: field.product ? field.product.productID : null,
       quantity: field.quantity,
+      unitprice: field.unitprice,
+      note: field.note,
     }));
 
     const submittedData = {
@@ -263,7 +362,7 @@ function Transfer() {
     })
       .then((response) => {
         if (response.ok) {
-          setFields([{ product: null, quantity: "" }]);
+          setFields([{ product: null, quantity: "", unitprice: "", note: "" }]);
           setAdditionalInfo("");
           setOpen(false);
           setOpenAlert(true);
@@ -321,11 +420,12 @@ function Transfer() {
                 label="Status"
               >
                 <MenuItem value="">
-                  <em>None</em>
+                  <em>All</em>
                 </MenuItem>
                 <MenuItem value="pending">Pending</MenuItem>
                 <MenuItem value="confirmed">Confirmed</MenuItem>
                 <MenuItem value="rejected">Rejected</MenuItem>
+                <MenuItem value="completed">Completed</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -334,6 +434,7 @@ function Transfer() {
               <TableHead>
                 <TableRow>
                   <TableCell />
+                  <TableCell>Order ID</TableCell>
                   <TableCell>Branch Name</TableCell>
                   <TableCell>Order Date</TableCell>
                   <TableCell>Confirm Date</TableCell>

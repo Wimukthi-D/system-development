@@ -31,7 +31,8 @@ function createData(
   StockDate,
   RestockLevel,
   BranchID,
-  CategoryName
+  CategoryName,
+  image
 ) {
   return {
     productID,
@@ -46,6 +47,7 @@ function createData(
     RestockLevel,
     BranchID,
     CategoryName,
+    image,
   };
 }
 
@@ -64,6 +66,7 @@ function Row({ row, isOpen, onExpand }) {
     BranchID: row.BranchID,
     CategoryName: row.CategoryName,
     BranchName: row.branchName,
+    image: row.image,
   });
 
   useEffect(() => {
@@ -81,6 +84,7 @@ function Row({ row, isOpen, onExpand }) {
       BranchID: row.BranchID,
       CategoryName: row.categoryName,
       BranchName: row.branchName,
+      image: row.image,
     });
 
     setErrors({});
@@ -324,7 +328,7 @@ function Row({ row, isOpen, onExpand }) {
       });
     }
   };
-  
+
   return (
     <React.Fragment>
       {!isOpen && (
@@ -364,7 +368,11 @@ function Row({ row, isOpen, onExpand }) {
               <div className="flex justify-center ">
                 <div className="flex items-center p-2 justify-center  w-1/5">
                   <div className="flex-col items-center justify-center overflow-hidden rounded-2xl p-1 border h-4/5 w-4/5">
-                    <img src={Dummyimg} alt="dummy" className="scale-150 " />
+                    <img
+                      src={`http://localhost:3001/` + row.image}
+                      alt="dummy"
+                      className="scale-150 "
+                    />
                   </div>
                 </div>
                 <div className="flex-col  w-4/5 px-16  pt-12 pb-6">
@@ -507,6 +515,7 @@ Row.propTypes = {
     restock_level: PropTypes.string.isRequired,
     branchID: PropTypes.string.isRequired,
     categoryName: PropTypes.string.isRequired,
+    image: PropTypes.string.isRequired,
   }).isRequired,
   isOpen: PropTypes.bool.isRequired,
   onExpand: PropTypes.func.isRequired,
@@ -541,7 +550,8 @@ export default function CollapsibleTable() {
               stock.stockDate,
               stock.restock_level,
               stock.branchID,
-              stock.categoryName
+              stock.categoryName,
+              stock.image
             )
           );
           setstockData(transformedData);

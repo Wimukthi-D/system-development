@@ -79,7 +79,7 @@ function Row({ row, isOpen, onExpand }) {
   });
 
   useEffect(() => {
-    const storedData = localStorage.getItem('token');
+    const storedData = localStorage.getItem("token");
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       setToken(parsedData.token);
@@ -455,8 +455,8 @@ function Row({ row, isOpen, onExpand }) {
         if (response.ok) {
           // User deleted successfully
           const data = await response.json();
-          const userID = data.userID;
-          console.log("User Deleted:", userID);
+          const userId = data.UserId;
+          console.log("User Deleted:", userId);
           Swal.fire({
             icon: "success",
             title: "User Deleted Successfully!",
@@ -469,6 +469,22 @@ function Row({ row, isOpen, onExpand }) {
           }).then(() => {
             window.location.reload(); // Reload the page after successful deletion
           });
+        } else {
+          // Handle errors based on the response status and message
+          const errorData = await response.json();
+          let errorMessage =
+            errorData.error && "Manager Cannot be deleted.";
+          Swal.fire({
+            icon: "error",
+            title: "User Deletion Failed",
+            text: errorMessage,
+            customClass: {
+              popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999"; // Adjust z-index here
+            },
+          });
         }
       } else {
         Swal.close();
@@ -476,10 +492,10 @@ function Row({ row, isOpen, onExpand }) {
     } catch (error) {
       // Handle network or unexpected errors
       console.error("Error Deleting user:", error);
-      let errorMessage = "An error occurred while Deleting the user.";
+      let errorMessage = "An error occurred while deleting the user.";
       Swal.fire({
         icon: "error",
-        title: "User Deleting Failed",
+        title: "User Deletion Failed",
         text: errorMessage,
         customClass: {
           popup: "z-50", // Apply Tailwind CSS class to adjust z-index

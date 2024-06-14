@@ -49,14 +49,58 @@ JOIN
 router.post("/submit", (req, res) => {
   const { items, paymentMethod, cashierID, branchID, customerID } = req.body;
 
-  // Insert the sale data into the sale table
-  insertSale(
+  // Check the availability of items before proceeding
+  checkItemAvailability(
+    items,
     branchID,
-    customerID,
-    cashierID,
-    paymentMethod,
-    handleAfterSaleInsert
+    (availabilityError, unavailableProduct) => {
+      if (availabilityError) {
+        res.status(400).json({
+          error: `Insufficient stock for product: ${unavailableProduct}`,
+        });
+        return;
+      }
+
+      // If all items have sufficient stock, proceed with inserting the sale
+      insertSale(
+        branchID,
+        customerID,
+        cashierID,
+        paymentMethod,
+        handleAfterSaleInsert
+      );
+    }
   );
+
+  function checkItemAvailability(items, branchID, callback) {
+    let itemsChecked = 0;
+
+    items.forEach((item) => {
+      const { productID, quantity } = item;
+      connection.query(
+        "SELECT quantity FROM inventory WHERE productID = ? AND branchID = ?",
+        [productID, branchID],
+        (err, results) => {
+          if (err) {
+            console.error("Error checking inventory:", err);
+            res.status(500).send("Internal Server Error");
+            return;
+          }
+
+          const availableQuantity = results.length ? results[0].quantity : 0;
+          if (availableQuantity < quantity) {
+            callback(new Error("Insufficient stock"), item.productID);
+            return;
+          }
+
+          itemsChecked++;
+          if (itemsChecked === items.length) {
+            callback(null);
+          }
+        }
+      );
+    });
+  }
 
   function insertSale(
     branchID,
@@ -111,9 +155,10 @@ router.post("/submit", (req, res) => {
             // If all items have been inserted, reduce the inventory
             reduceInventory(items, () => {
               // Once all items are inserted and inventory is reduced, send the success response
-              res
-                .status(200)
-                .json({ message: "All items inserted successfully" });
+              res.status(200).json({
+                message: "All items inserted successfully",
+                data: saleID,
+              });
             });
           }
         }
@@ -122,6 +167,8 @@ router.post("/submit", (req, res) => {
   }
 
   function reduceInventory(items, callback) {
+    let inventoryCount = 0;
+
     // Reduce inventory for each item
     items.forEach((item) => {
       const { productID, quantity, stockID } = item;
@@ -135,11 +182,18 @@ router.post("/submit", (req, res) => {
             return;
           }
           console.log("Inventory reduced successfully for stock:", stockID);
+
+          // Increment the inventoryCount
+          inventoryCount++;
+
+          // Check if all inventory has been updated
+          if (inventoryCount === items.length) {
+            // Call the callback once inventory reduction is completed for all items
+            callback();
+          }
         }
       );
     });
-    // Call the callback once inventory reduction is completed for all items
-    callback();
   }
 });
 
@@ -157,7 +211,7 @@ router.get("/getBranch", (req, res) => {
 });
 
 router.put("/getCustomerID/:FirstName", (req, res) => {
-  const FirstName  = req.params.FirstName;
+  const FirstName = req.params.FirstName;
   connection.query(
     `SELECT customerID FROM customer WHERE userID = (SELECT userID FROM user WHERE FirstName = ? && Usertype = 'Customer')`,
     [FirstName],
@@ -202,11 +256,61 @@ router.get("/getCustomer", (req, res) => {
       }
 
       // If no error, send the retrieved customer data in the response
-      res.status(200).json({ customers: rows }); 
+      res.status(200).json({ customers: rows });
     }
   );
 });
 
+router.get("/getCustomerHistory", (req, res) => {
+  const userID = req.query.userID;
 
+  if (!userID) {
+    res.status(400).send("Bad Request: userID is required");
+    return;
+  }
+
+  connection.query(
+    `SELECT customerID FROM customer WHERE userID = ?`,
+    [userID],
+    (err, customerResult) => {
+      if (err) {
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+
+      if (customerResult.length === 0) {
+        res.status(404).send("Customer not found");
+        return;
+      }
+
+      const customerID = customerResult[0].customerID;
+
+      connection.query(
+        `SELECT s.saleID, s.branchID, b.branchName, u.FirstName,
+                DATE_FORMAT(s.date_time, '%Y/%m/%d @%H:%i') as date_time,
+                sp.quantity, sp.unitprice, p.drugname, g.genericName, s.customer_ID 
+         FROM sale s 
+         JOIN saleproduct sp ON s.saleID = sp.saleID 
+         JOIN product p ON p.productID = sp.productID 
+         JOIN generic g ON g.genericID = p.genericID 
+         JOIN user u ON u.userID = s.userID 
+         JOIN branch b ON b.branchID = u.branchID 
+         WHERE s.customer_ID = ?
+         ORDER BY s.saleID`,
+        [customerID],
+        (err, rows) => {
+          if (err) {
+            console.error("Error querying MySQL database:", err);
+            res.status(500).send("Internal Server Error");
+            return;
+          }
+
+          res.status(200).json({ history: rows });
+        }
+      );
+    }
+  );
+});
 
 module.exports = router;

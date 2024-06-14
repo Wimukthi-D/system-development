@@ -73,6 +73,7 @@ function Row(props) {
     }
   }, []);
 
+  console.log(row.userID);
   const handleApprove = () => {
     fetch(`http://localhost:3001/api/order/updatePending`, {
       method: "POST",
@@ -82,6 +83,7 @@ function Row(props) {
       body: JSON.stringify({
         orderID: row.orderID,
         status: "Approved",
+        userID: row.userID,
       }),
     })
       .then((response) => response.json())

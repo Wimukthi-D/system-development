@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const connection = require("../db");
+const nodemailer = require("nodemailer");
 
 const router = express.Router();
 
@@ -332,12 +333,20 @@ router.post("/CreateOrder", (req, res) => {
   );
 });
 
+var transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "wimu.personal@gmail.com", // use environment variables for security
+    pass: "fnyfhoplkpjarihw",
+  },
+});
+
 router.post("/updatePending", (req, res) => {
-  const { orderID, status } = req.body;
+  const { orderID, status, userID } = req.body;
 
   connection.query(
-    `SELECT status FROM orders WHERE orderID = ?`,
-    [orderID],
+    `SELECT email FROM user WHERE userID = ?`,
+    [userID],
     (err, results) => {
       if (err) {
         console.error("Error querying MySQL database:", err);
@@ -346,34 +355,70 @@ router.post("/updatePending", (req, res) => {
       }
 
       if (results.length === 0) {
-        res.status(404).json("Order not found");
+        res.status(404).json("User not found");
         return;
       }
 
-      const currentStatus = results[0].status;
-      if (currentStatus === "Pending") {
-        const updateQuery = `
-          UPDATE orders 
-          SET status = ?, approvedate = ? 
-          WHERE orderID = ?
-        `;
-        const approvedDate = new Date();
-
-        connection.query(
-          updateQuery,
-          [status, approvedDate, orderID],
-          (err, result) => {
-            if (err) {
-              console.error("Error updating MySQL database:", err);
-              res.status(500).json("Internal Server Error");
-              return;
-            }
-            res.status(200).json("Order updated successfully");
+      const to = results[0].email;
+      console.log(to);
+      connection.query(
+        `SELECT status FROM orders WHERE orderID = ?`,
+        [orderID],
+        (err, results) => {
+          if (err) {
+            console.error("Error querying MySQL database:", err);
+            res.status(500).json("Internal Server Error");
+            return;
           }
-        );
-      } else {
-        res.status(400).json("Order status is not pending");
-      }
+
+          if (results.length === 0) {
+            res.status(404).json("Order not found");
+            return;
+          }
+
+          const currentStatus = results[0].status;
+          if (currentStatus === "Pending") {
+            const updateQuery = `
+              UPDATE orders 
+              SET status = ?, approvedate = ? 
+              WHERE orderID = ?
+            `;
+            const approvedDate = new Date();
+
+            connection.query(
+              updateQuery,
+              [status, approvedDate, orderID],
+              (err, result) => {
+                if (err) {
+                  console.error("Error updating MySQL database:", err);
+                  res.status(500).json("Internal Server Error");
+                  return;
+                }
+
+                var mailOptions = {
+                  from: "wimu.personal@gmail.com",
+                  to: to,
+                  subject: "New order received",
+                  text: "You have new order to be reviewed",
+                };
+
+                transporter.sendMail(mailOptions, function (error, info) {
+                  if (error) {
+                    console.log(error);
+                    return res.status(500).send("Error sending email.");
+                  } else {
+                    console.log("Email sent: " + info.response);
+                    return res.status(200).send("Email sent successfully.");
+                  }
+                });
+                res.status(200).json("Order updated successfully");
+              }
+            );
+          } else {
+            res.status(400).json("Order status is not pending");
+          }
+        }
+      );
     }
   );
 });
@@ -596,7 +641,7 @@ router.post("/updateReceived", (req, res) => {
         let queryParams = [status, orderID];
 
         if (currentStatus === "Shipped") {
-          updateQuery = `UPDATE orders SET status = ?, receiveDate = CURDATE() WHERE orderID = ?`; 
+          updateQuery = `UPDATE orders SET status = ?, receiveDate = CURDATE() WHERE orderID = ?`;
         } else {
           updateQuery = `UPDATE orders SET status = ? WHERE orderID = ?`;
         }

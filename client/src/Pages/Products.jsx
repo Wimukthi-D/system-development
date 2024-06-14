@@ -33,6 +33,7 @@ const RoundedTextField = styled(TextField)({
 
 function Products() {
   const [open, setOpen] = useState(false);
+  const [image, setImage] = useState(null);
   const [ProductData, setProductData] = useState({
     DrugName: "",
     GenericName: "",
@@ -100,6 +101,7 @@ function Products() {
       categoryID: "",
     });
     setErrors({});
+    setImage(null);
   };
 
   const handleChange = (e) => {
@@ -134,16 +136,34 @@ function Products() {
 
   const { DrugName, GenericName, categoryName, restock_level, Description } =
     ProductData;
-  const dataToSend = {
-    DrugName,
-    GenericName,
-    categoryName,
-    restock_level,
-    Description,
+
+  const handleImageChange = (e) => {
+    const image = e.target.files[0];
+    setImage(image);
   };
 
   const handleAddProduct = async () => {
     if (validateForm()) {
+      const formData = new FormData();
+      formData.append("image", image);
+
+      const imageresponse = await fetch(
+        "http://localhost:3001/api/stock/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const imageResult = await imageresponse.json();
+      const imageid = imageResult.image;
+      const dataToSend = {
+        DrugName,
+        GenericName,
+        categoryName,
+        restock_level,
+        Description,
+        imageid,
+      };
       try {
         const response = await fetch(
           "http://localhost:3001/api/stock/addProduct",
@@ -340,7 +360,9 @@ function Products() {
                           helperText={errors.Description}
                         />
                       </Grid>
-                      <Grid item xs={6}></Grid>
+                      <Grid item xs={12}>
+                        <input type="file" onChange={handleImageChange} />
+                      </Grid>
                     </Grid>
                   </DialogContent>
                 </div>

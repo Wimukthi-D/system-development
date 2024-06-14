@@ -121,6 +121,18 @@ function Stocks() {
       errors.GenericName = "Generic Name is required";
     } else if (!stockData.Quantity.trim()) {
       errors.Quantity = "Quantity is requires ";
+    } else if (!stockData.unitprice.trim()) {
+      errors.unitprice = "Unit Price is required";
+    } else if (!stockData.ExpireDate) {
+      errors.ExpireDate = "Expire Date is required";
+    } else if (!stockData.stockDate) {
+      errors.stockDate = "Stock Date is required";
+    } else if (!stockData.BranchID) {
+      errors.BranchID = "Branch is required";
+    } else if (
+      new Date(stockData.ExpireDate) <= new Date(stockData.stockDate)
+    ) {
+      errors.ExpireDate = "Expire Date must be later than Stock Date";
     }
     setErrors(errors);
     return Object.keys(errors).length === 0; // Return true if there are no errors
@@ -409,7 +421,7 @@ function Stocks() {
                                 {...params}
                                 fullWidth
                                 name="stockDate"
-                                error={!!errors.stockDate}
+                                error={errors.stockDate}
                                 helperText={errors.stockDate}
                               />
                             )}
@@ -432,10 +444,10 @@ function Stocks() {
                         <RoundedTextField
                           label="Quantity"
                           name="Quantity"
+                          type="number"
                           value={stockData.Quantity}
                           onChange={handleChange}
                           fullWidth
-                          multiline
                           error={Boolean(errors.Quantity)}
                           helperText={errors.Quantity}
                         />

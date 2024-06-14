@@ -12,6 +12,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import IconButton from "@mui/material/IconButton";
+import Button from "@mui/material/Button";
 import { jwtDecode } from "jwt-decode";
 import Tooltip from "@mui/material/Tooltip";
 import Menu from "@mui/material/Menu";
@@ -101,12 +102,14 @@ function Navbar() {
           { text: "ORDERS", route: "/manager-dashboard/orders" },
           { text: "ANALYSIS", route: "/manager-dashboard" },
           { text: "SALES HISTORY", route: "/manager-dashboard/salehistory" },
+          { text: "REMINDERS", route: "/manager-dashboard/reminders" },
         ];
         break;
       case "Cashier":
         buttons = [
           { text: "BILLING", route: "/cashier-dashboard" },
           { text: "STOCKS", route: "/cashier-dashboard/stocks" },
+          { text: "ORDER HISTORY", route: "/cashier-dashboard/orders" },
         ];
         break;
       case "Staff":
@@ -115,23 +118,22 @@ function Navbar() {
           { text: "PRODUCTS", route: "/Staff-dashboard/Products" },
           { text: "STAFF", route: "/staff-dashboard/users" },
           { text: "ORDERS", route: "/Staff-dashboard/orders" },
+          { text: "REMINDERS", route: "/staff-dashboard/reminders" },
         ];
         break;
       case "Supplier":
         buttons = [{ text: "ORDERS", route: "/supplier-dashboard" }];
         break;
       case "Customer":
-        navigate("/customer-dashboard");
-        return; // Exit the function early since navigation has occurred
+        buttons = [{ text: "ORDERS HISTORY", route: "/Customer-dashboard" }];
+        break; // Exit the function early since navigation has occurred
       default:
-        navigate("/");
+        navigate("/login");
         return; // Exit the function early since navigation has occurred
     }
   } else {
     return;
   }
-
-  console.log(buttons);
 
   const DrawerList = (
     <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
@@ -154,7 +156,7 @@ function Navbar() {
       <div
         className="flex bg-white items-center rounded-full cursor-pointer"
         onClick={() => navigate("/")}
-        >
+      >
         <img
           src={Logo}
           alt="logo"
@@ -182,7 +184,7 @@ function Navbar() {
           </div>
           <div className="flex text-white text-2xl gap-4 items-center justify-between">
             <div className="flex flex-col justify-center">|</div>
-            <Box sx={{ flexGrow: 0 }}>
+            {/* <Box sx={{ flexGrow: 0 }}>
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                   <Avatar alt={FirstName} src={FirstName} />
@@ -217,7 +219,11 @@ function Navbar() {
                   Logout
                 </MenuItem>
               </Menu>
-            </Box>
+            </Box> */}
+
+            <Button onClick={handleLogOut} variant="">
+              <Logout fontSize="small" />
+            </Button>
           </div>
         </div>
       </div>

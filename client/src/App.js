@@ -19,6 +19,8 @@ import NewCustomerPopup from "./Components/NewCustomerPopup.jsx";
 import Profile from "./Pages/Profile.jsx";
 import OrderHistory from "./Pages/OrderHistory.jsx";
 import Supplier from "./Pages/Supplier/Supplier.jsx";
+import LowStock from "./Pages/LowStock.jsx";
+import CustomerOrders from "./Pages/CustomerOrders.jsx";
 
 const publicRoutes = ["/", "/login", "/*"];
 
@@ -136,6 +138,11 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
                 path="/manager-dashboard/salehistory"
                 element={<OrderHistory />}
               />
+              <Route
+                exact
+                path="/manager-dashboard/reminders"
+                element={<LowStock />}
+              />
             </>
           )}
           {UserType === "Cashier" && (
@@ -144,12 +151,17 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
               <Route
                 exact
                 path="/cashier-dashboard/stocks"
-                element={<NewCustomerPopup />}
+                element={<Stocks />}
               />
               <Route
                 exact
                 path="/cashier-dashboard/Profile"
                 element={<Profile />}
+              />
+              <Route
+                exact
+                path="/cashier-dashboard/orders"
+                element={<OrderHistory />}
               />
             </>
           )}
@@ -172,6 +184,11 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
                 path="/Staff-dashboard/orders"
                 element={<Orders />}
               />
+              <Route
+                exact
+                path="/Staff-dashboard/reminders"
+                element={<LowStock />}
+              />
             </>
           )}
           {UserType === "Supplier" && (
@@ -186,7 +203,11 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
           )}
           {UserType === "Customer" && (
             <>
-              <Route exact path="/customer-dashboard" element={<Orders />} />
+              <Route
+                exact
+                path="/customer-dashboard"
+                element={<CustomerOrders />}
+              />
               <Route
                 exact
                 path="/customer-dashboard/Profile"
