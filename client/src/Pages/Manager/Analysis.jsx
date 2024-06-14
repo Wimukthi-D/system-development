@@ -8,11 +8,14 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  Bar,
 } from "recharts";
 import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import Navbar from "../../Components/Navbar";
 import { jwtDecode } from "jwt-decode";
-
+import Pie from "./Pie";
+import BarChart from "./BarChart";
+import TopProducts from "./TopProducts";
 function Analysis() {
   const [data, setData] = useState([]);
   const [timeRange, setTimeRange] = useState("day");
@@ -163,66 +166,78 @@ function Analysis() {
   return (
     <div className="flex flex-col w-screen h-screen">
       <Navbar />
-      <div className="flex flex-col w-3/5 h-1/2">
-        <div className="flex border justify-between px-10 pt-5 pb-2">
-          <div className="flex w-40">
-            <FormControl fullWidth>
-              <InputLabel id="timeRange-label">Select Time Range</InputLabel>
-              <Select
-                labelId="timeRange-label"
-                id="timeRange"
-                size="small"
-                value={timeRange}
-                label="Select Time Range"
-                onChange={handleChangeTimeRange}
-              >
-                <MenuItem value="day">Day</MenuItem>
-                <MenuItem value="week">Week</MenuItem>
-                <MenuItem value="month">Month</MenuItem>
-                <MenuItem value="year">Year</MenuItem>
-              </Select>
-            </FormControl>
+      <div className="flex gap-2 w-screen h-1/2">
+        <div className="flex flex-col w-3/5 ">
+          <div className="flex border justify-between px-10 pt-5 pb-2">
+            <div className="flex w-40">
+              <FormControl fullWidth>
+                <InputLabel id="timeRange-label">Select Time Range</InputLabel>
+                <Select
+                  labelId="timeRange-label"
+                  id="timeRange"
+                  size="small"
+                  value={timeRange}
+                  label="Select Time Range"
+                  onChange={handleChangeTimeRange}
+                >
+                  <MenuItem value="day">Day</MenuItem>
+                  <MenuItem value="week">Week</MenuItem>
+                  <MenuItem value="month">Month</MenuItem>
+                  <MenuItem value="year">Year</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+            <div className="flex w-40">
+              <FormControl fullWidth>
+                <InputLabel id="branch-label">Select Branch</InputLabel>
+                <Select
+                  labelId="branch-label"
+                  id="branch"
+                  size="small"
+                  value={branchID || 0} // Default to 0 if branchID is null or undefined
+                  label="Select Branch"
+                  onChange={handleChangeBranch}
+                >
+                  <MenuItem value={0}>All Branches</MenuItem>
+                  {branches.map((branch) => (
+                    <MenuItem key={branch.branchID} value={branch.branchID}>
+                      {branch.branchName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+            <div className="ml-4">
+              <strong>Average Revenue:</strong> {averageRevenue.toFixed(2)} LKR
+            </div>
           </div>
-          <div className="flex w-40">
-            <FormControl fullWidth>
-              <InputLabel id="branch-label">Select Branch</InputLabel>
-              <Select
-                labelId="branch-label"
-                id="branch"
-                size="small"
-                value={branchID || 0} // Default to 0 if branchID is null or undefined
-                label="Select Branch"
-                onChange={handleChangeBranch}
-              >
-                <MenuItem value={0}>All Branches</MenuItem>
-                {branches.map((branch) => (
-                  <MenuItem key={branch.branchID} value={branch.branchID}>
-                    {branch.branchName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </div>
-          <div className="ml-4">
-            <strong>Average Revenue:</strong> {averageRevenue.toFixed(2)} LKR
+          <div style={{ width: "100%", height: "100%" }}>
+            <ResponsiveContainer width="100%" height="95%">
+              <LineChart width={300} height={100} data={data}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#8884d8"
+                  strokeWidth={3}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
-        <div style={{ width: "100%", height: "100%" }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart width={300} height={100} data={data}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                stroke="#8884d8"
-                strokeWidth={3}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="flex w-2/5">
+          <Pie data={data} />
+        </div>
+      </div>
+      <div className="flex gap-2 w-screen h-1/2">
+        <div className="flex flex-col w-1/3 p-5 mr-4">
+          <TopProducts />
+        </div>
+        <div className="flex border flex-col w-2/3">
+          <BarChart />
         </div>
       </div>
     </div>

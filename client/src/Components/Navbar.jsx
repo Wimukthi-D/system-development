@@ -101,12 +101,14 @@ function Navbar() {
           { text: "ORDERS", route: "/manager-dashboard/orders" },
           { text: "ANALYSIS", route: "/manager-dashboard" },
           { text: "SALES HISTORY", route: "/manager-dashboard/salehistory" },
+          { text: "REMINDERS", route: "/manager-dashboard/reminders" },
         ];
         break;
       case "Cashier":
         buttons = [
           { text: "BILLING", route: "/cashier-dashboard" },
           { text: "STOCKS", route: "/cashier-dashboard/stocks" },
+          { text: "ORDER HISTORY", route: "/cashier-dashboard/orders" },
         ];
         break;
       case "Staff":
@@ -115,6 +117,7 @@ function Navbar() {
           { text: "PRODUCTS", route: "/Staff-dashboard/Products" },
           { text: "STAFF", route: "/staff-dashboard/users" },
           { text: "ORDERS", route: "/Staff-dashboard/orders" },
+          { text: "REMINDERS", route: "/staff-dashboard/reminders" },
         ];
         break;
       case "Supplier":
@@ -130,8 +133,6 @@ function Navbar() {
   } else {
     return;
   }
-
-  console.log(buttons);
 
   const DrawerList = (
     <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
@@ -154,7 +155,7 @@ function Navbar() {
       <div
         className="flex bg-white items-center rounded-full cursor-pointer"
         onClick={() => navigate("/")}
-        >
+      >
         <img
           src={Logo}
           alt="logo"

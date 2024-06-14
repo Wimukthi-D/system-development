@@ -116,4 +116,113 @@ router.get("/getRevenue", (req, res) => {
   });
 });
 
+router.get("/getSales", (req, res) => {
+  connection.query(
+    `SELECT
+    SUM(sp.quantity * sp.unitprice) as totalSale
+FROM
+    sale s
+JOIN
+    saleproduct sp ON s.saleID = sp.saleID
+ORDER BY
+    s.date_time DESC`,
+    (err, rows) => {
+      if (err) {
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+      res.status(200).json({ Sales: rows[0].totalSale });
+    }
+  );
+});
+
+router.get("/getOrder", (req, res) => {
+  connection.query(
+    `SELECT SUM(price) AS purchase FROM orders WHERE status = 'accepted'`,
+    (err, rows) => {
+      if (err) {
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+      res.status(200).json({ Orders: rows[0].purchase });
+    }
+  );
+});
+
+router.get("/getRemainStock", (req, res) => {
+  connection.query(
+    `SELECT SUM(quantity * unitprice) AS expectedTotal FROM inventory`,
+    (err, rows) => {
+      if (err) {
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+      res.status(200).json({ Stocks: rows[0].expectedTotal });
+    }
+  );
+});
+
+router.get("/getTopSellingCategories", (req, res) => {
+  connection.query(
+    `SELECT 
+        c.categoryName AS category,
+        SUM(sp.quantity) AS totalQuantity,
+        SUM(sp.quantity * sp.unitprice) AS totalRevenue
+     FROM 
+        sale s
+     JOIN 
+        saleproduct sp ON s.saleID = sp.saleID
+     JOIN 
+        product p ON sp.productID = p.productID
+     JOIN 
+        category c ON p.categoryID = c.categoryID
+     GROUP BY 
+        c.categoryName
+     ORDER BY 
+        totalQuantity DESC
+     LIMIT 5`,
+    (err, rows) => {
+      if (err) {
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+      res.status(200).json({ TopSellingCategories: rows });
+    }
+  );
+});
+
+router.get("/getTopSellingProducts", (req, res) => {
+  connection.query(
+    `SELECT
+    p.drugname,
+    g.genericName,
+    SUM(sp.quantity * sp.unitprice) AS Total
+FROM
+    sale s
+    JOIN saleproduct sp ON s.saleID = sp.saleID
+    JOIN product p ON sp.productID = p.productID
+    JOIN generic g ON g.genericID = p.genericID
+WHERE
+    MONTH(s.Date_time) = MONTH(CURDATE())
+    AND YEAR(s.Date_time) = YEAR(CURDATE())
+GROUP BY 
+	p.productID    
+ORDER BY
+    Total DESC
+LIMIT 5`,
+    (err, rows) => {
+      if (err) {
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+      res.status(200).json({ TopSellingProducts: rows });
+    }
+  );
+});
+
 module.exports = router;

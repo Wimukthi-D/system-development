@@ -91,8 +91,8 @@ function Profile() {
       <div className="flex flex-col h-full justify-center">
         <div className="flex flex-col items-center h-4/5">
           <div className="flex w-3/5 bg-white  h-full rounded-xl shadow-xl">
-            <div className="flex w-1/3">
-              <div className="flex aspect-square border justify-center  m-5">
+            <div className="flex border justify-center items-center w-1/3">
+              <div className="flex border justify-center  m-5">
                 <Box
                   height={200}
                   width={200}

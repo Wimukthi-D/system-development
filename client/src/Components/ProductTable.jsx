@@ -22,7 +22,8 @@ function createData(
   restock_level,
   categoryID,
   Description,
-  genericID
+  genericID,
+  image
 ) {
   return {
     id,
@@ -33,6 +34,7 @@ function createData(
     categoryID,
     Description,
     genericID,
+    image,
   };
 }
 
@@ -46,6 +48,7 @@ function Row({ row, isOpen, onExpand }) {
     categoryID: "",
     Description: "",
     genericID: "",
+    image: "",
   });
 
   useEffect(() => {
@@ -58,6 +61,7 @@ function Row({ row, isOpen, onExpand }) {
       categoryID: row.categoryID,
       Description: row.Description,
       genericID: row.genericID,
+      image: row.image,
     });
 
     setErrors({});
@@ -66,7 +70,11 @@ function Row({ row, isOpen, onExpand }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     let newValue = value;
-    if (name === "drugName" || name === "genericName" || name === "categoryName") {
+    if (
+      name === "drugName" ||
+      name === "genericName" ||
+      name === "categoryName"
+    ) {
       newValue = newValue.slice(0, 20); // Limit to 20 characters
       newValue = newValue.replace(/[0-9]/g, ""); // Allow only alphabets
     } else if (name === "restock_level") {
@@ -74,11 +82,10 @@ function Row({ row, isOpen, onExpand }) {
       newValue = newValue.replace(/[^0-9]/g, ""); // Allow only numbers
     } else if (name === "Description") {
       newValue = newValue.slice(0, 100); // Limit to 100 characters
-    }  
+    }
     setproductData({ ...productData, [name]: newValue });
     setErrors({ ...errors, [name]: "" }); // Clear the error when input changes
   };
-  
 
   const validateForm = () => {
     const errors = {};
@@ -109,7 +116,7 @@ function Row({ row, isOpen, onExpand }) {
           confirmButtonText: "Yes, update it!",
           cancelButtonText: "Cancel",
         });
-  
+
         if (confirmed.isConfirmed) {
           console.log("Updating product with data:", productData); // Debugging log
           const response = await fetch(
@@ -122,7 +129,7 @@ function Row({ row, isOpen, onExpand }) {
               body: JSON.stringify(productData),
             }
           );
-  
+
           if (response.ok) {
             // Product updated successfully
             const data = await response.json();
@@ -192,7 +199,6 @@ function Row({ row, isOpen, onExpand }) {
       }
     }
   };
-  
 
   const handleDelete = async () => {
     try {
@@ -290,82 +296,93 @@ function Row({ row, isOpen, onExpand }) {
                   <KeyboardArrowUpIcon />
                 </IconButton>
               </div>
-              <div className="px-16  pt-12 pb-6">
-                <div className="flex justify-between  mb-10">
-                  <TextField
-                    variant="standard"
-                    label="Product ID"
-                    defaultValue={row.id}
-                    style={{ width: "75px" }}
-                    InputProps={{ readOnly: true, disableUnderline: true }}
-                  />
-                  <TextField
-                    variant="standard"
-                    label="Drug Name"
-                    value={productData.drugName}
-                    name="drugName"
-                    onChange={handleChange}
-                    error={Boolean(errors.drugName)}
-                    helperText={errors.drugName}
-                  />
-                  <TextField
-                    variant="standard"
-                    label="Generic Name"
-                    value={productData.genericName}
-                    name="genericName"
-                    onChange={handleChange}
-                    error={Boolean(errors.genericName)}
-                    helperText={errors.genericName}
-                  />
-                  <TextField
-                    variant="standard"
-                    label="Category"
-                    value={productData.categoryName}
-                    style={{ width: "120px" }}
-                    name="categoryName"
-                    onChange={handleChange}
-                    error={Boolean(errors.categoryName)}
-                    helperText={errors.categoryName}
-                  />
-                  <TextField
-                    variant="standard"
-                    label="Restock Level"
-                    value={productData.restock_level}
-                    style={{ width: "120px" }}
-                    name="restock_level"
-                    type="number"
-                    onChange={handleChange}
-                    error={Boolean(errors.restock_level)}
-                    helperText={errors.restock_level}
-                  />
+              <div className="flex justify-center">
+                <div className="flex items-center p-2 justify-center  w-1/5">
+                  <div className="flex-col items-center justify-center overflow-hidden rounded-2xl p-1 border h-4/5 w-4/5">
+                    <img
+                      src={`http://localhost:3001/` + row.image}
+                      alt="dummy"
+                      className="scale-150 "
+                    />
+                  </div>
                 </div>
-                <div className="flex justify-between mb-8">
-                  <TextField
-                    variant="standard"
-                    label="Description"
-                    value={productData.Description}
-                    style={{ width: "100%" }}
-                    name="Description"
-                    onChange={handleChange}
-                    error={Boolean(errors.Description)}
-                    helperText={errors.Description}
-                  />
-                </div>
-                <div className="flex justify-end gap-4">
-                  <PrimaryButton
-                    text="DELETE"
-                    onClick={handleDelete}
-                    color="red"
-                    hoverColor="#dc2626"
-                    activeColor="#192c10"
-                  />
-                  <PrimaryButton
-                    text="UPDATE"
-                    onClick={handleUpdate}
-                    color="#139E0C"
-                    hoverColor="#437729"
-                    activeColor="#192c10"
-                  />
+                <div className="px-16 w-4/5 pt-12 pb-6">
+                  <div className="flex justify-between  mb-10">
+                    <TextField
+                      variant="standard"
+                      label="Product ID"
+                      defaultValue={row.id}
+                      style={{ width: "75px" }}
+                      InputProps={{ readOnly: true, disableUnderline: true }}
+                    />
+                    <TextField
+                      variant="standard"
+                      label="Drug Name"
+                      value={productData.drugName}
+                      name="drugName"
+                      onChange={handleChange}
+                      error={Boolean(errors.drugName)}
+                      helperText={errors.drugName}
+                    />
+                    <TextField
+                      variant="standard"
+                      label="Generic Name"
+                      value={productData.genericName}
+                      name="genericName"
+                      onChange={handleChange}
+                      error={Boolean(errors.genericName)}
+                      helperText={errors.genericName}
+                    />
+                    <TextField
+                      variant="standard"
+                      label="Category"
+                      value={productData.categoryName}
+                      style={{ width: "120px" }}
+                      name="categoryName"
+                      onChange={handleChange}
+                      error={Boolean(errors.categoryName)}
+                      helperText={errors.categoryName}
+                    />
+                    <TextField
+                      variant="standard"
+                      label="Restock Level"
+                      value={productData.restock_level}
+                      style={{ width: "120px" }}
+                      name="restock_level"
+                      type="number"
+                      onChange={handleChange}
+                      error={Boolean(errors.restock_level)}
+                      helperText={errors.restock_level}
+                    />
+                  </div>
+                  <div className="flex justify-between mb-8">
+                    <TextField
+                      variant="standard"
+                      label="Description"
+                      value={productData.Description}
+                      style={{ width: "100%" }}
+                      name="Description"
+                      onChange={handleChange}
+                      error={Boolean(errors.Description)}
+                      helperText={errors.Description}
+                    />
+                  </div>
+                  <div className="flex justify-end gap-4">
+                    <PrimaryButton
+                      text="DELETE"
+                      onClick={handleDelete}
+                      color="red"
+                      hoverColor="#dc2626"
+                      activeColor="#192c10"
+                    />
+                    <PrimaryButton
+                      text="UPDATE"
+                      onClick={handleUpdate}
+                      color="#139E0C"
+                      hoverColor="#437729"
+                      activeColor="#192c10"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -417,7 +434,8 @@ export default function CollapsibleTable() {
               product.restock_level,
               product.categoryID,
               product.Description,
-              product.genericID
+              product.genericID,
+              product.image
             )
           );
           setproductData(transformedData);

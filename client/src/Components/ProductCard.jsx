@@ -1,11 +1,14 @@
 import React from "react";
-import Penadol from "../assets/penadol.webp";
 
-function ProductCard({ name, genericname, price, branch, inStock }) {
+function ProductCard({ name, genericname, price, branch, inStock, image }) {
   return (
-    <div className="relative w-52 bg-white shadow-lg rounded-xl    ">
+    <div className="w-52 bg-white shadow-lg rounded-xl    ">
       <div className="relative w-52 h-52 overflow-hidden shadow-md rounded-xl">
-        <img src={Penadol} alt="Product" className="scale-150 object-cover" />
+        <img
+          src={`http://localhost:3001/` + image}
+          alt="Product"
+          className="scale-150 object-cover"
+        />
         <div
           className={`absolute rounded-md ${
             inStock ? "bg-[#2ED573]" : "bg-[#EF4444]"

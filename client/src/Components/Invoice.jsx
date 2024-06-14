@@ -9,6 +9,10 @@ import { MonetizationOn } from "@mui/icons-material";
 import { createTheme } from "@mui/material/styles";
 import { ThemeProvider } from "@emotion/react";
 import Swal from "sweetalert2";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import html2canvas from "html2canvas";
+import Header from "../assets/Header.png";
 
 const theme = createTheme({
   palette: {
@@ -25,12 +29,19 @@ const Invoice = ({
   selectedItems,
   setSelectedItems,
   branchID,
+  branchName,
   customerID,
+  customerName,
   cashierID,
+  cashierName,
 }) => {
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [amountPaid, setAmountPaid] = useState(0);
+
+  if (customerName === null) {
+    customerName = "Guest";
+  }
 
   console.log("selected passed", selectedItems);
 
@@ -85,8 +96,6 @@ const Invoice = ({
       branchID,
       customerID,
     };
-
-    console.log(payload);
     fetch("http://localhost:3001/api/bill/submit", {
       method: "POST",
       headers: {
@@ -104,12 +113,14 @@ const Invoice = ({
             title: "Successful",
             text: "Invoice submitted successfully",
           }).then(() => {
-            window.location.reload();
+            console.log("saleID:");
+            generatePDF();
           });
-          console.log("Raw response:", response);
         }
-        console.log("Raw response:", response);
         return response.json();
+      })
+      .then((data) => {
+        console.log("Sale ID:", data.saleID); // Access the saleID here
       })
       .catch((error) => {
         console.error("Error submitting invoice", error);
@@ -125,8 +136,102 @@ const Invoice = ({
     return amountPaid - calculateGrandTotal();
   };
 
+  const generatePDF = async () => {
+    const input = document.getElementById("invoice");
+    const canvas = await html2canvas(input);
+    const imgData = canvas.toDataURL("image/png", 1.0); // Capture the invoice as an image
+    const pdf = new jsPDF();
+    const date = new Date().toLocaleString();
+
+    // Create a promise to handle image loading
+    const loadImage = (src) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve(img);
+        img.onerror = (err) => reject(err);
+      });
+    };
+
+    try {
+      const logo = await loadImage(Header); // Path to your logo
+
+      // Add logo to the PDF
+      pdf.addImage(logo, "PNG", 0, 0, 210, 45); // Adjust the position and size as needed
+
+      // Set font size for the header
+      pdf.setFontSize(12);
+      pdf.text(`Date & Time: ${date}`, 10, 45);
+      pdf.text(`Cashier: ${cashierName}`, 10, 50);
+      pdf.text(`Branch: ${branchName}`, 10, 55);
+      pdf.text(`Customer: ${customerName}`, 10, 60);
+
+      const tableRows = selectedItems.map((item) => [
+        item.drugname,
+        item.unitprice,
+        item.count,
+        item.unitprice * item.count,
+      ]);
+
+      // Set font size for the table header
+      pdf.setFontSize(12);
+      pdf.autoTable({
+        head: [["Product", "Unit Price", "Quantity", "Total"]],
+        body: tableRows,
+        startY: 65,
+      });
+
+      // Set font size for the summary
+      pdf.setFontSize(12);
+      pdf.text(`Sub Total:`, 10, pdf.lastAutoTable.finalY + 10);
+      pdf.text(
+        `${calculateTotal().toFixed(2)}`,
+        100,
+        pdf.lastAutoTable.finalY + 10,
+        { align: "right" }
+      );
+      pdf.text(`Discount:`, 10, pdf.lastAutoTable.finalY + 15);
+      pdf.text(`${discount}%`, 100, pdf.lastAutoTable.finalY + 15, {
+        align: "right",
+      });
+      pdf.setFontSize(16);
+      pdf.text(`Grand Total:`, 10, pdf.lastAutoTable.finalY + 25);
+      pdf.text(
+        `${calculateGrandTotal().toFixed(2)}`,
+        100,
+        pdf.lastAutoTable.finalY + 25,
+        { align: "right" }
+      );
+
+      pdf.setFontSize(12);
+      pdf.text(`Payment Method:`, 10, pdf.lastAutoTable.finalY + 35);
+      pdf.text(`${paymentMethod}`, 100, pdf.lastAutoTable.finalY + 35, {
+        align: "right",
+      });
+
+      pdf.text(`Amount Paid:`, 10, pdf.lastAutoTable.finalY + 40);
+      pdf.text(`${amountPaid.toFixed(2)}`, 100, pdf.lastAutoTable.finalY + 40, {
+        align: "right",
+      });
+      pdf.text(`Balance:`, 10, pdf.lastAutoTable.finalY + 45);
+      pdf.text(
+        `${calculateBalance().toFixed(2)}`,
+        100,
+        pdf.lastAutoTable.finalY + 45,
+        {
+          align: "right",
+        }
+      );
+
+      pdf.save(customerName + `.pdf`);
+      window.location.reload();
+    } catch (error) {
+      console.error("Error loading the logo image:", error);
+    }
+  };
+
   return (
-    <div className="flex flex-col justify-between">
+    <div id="invoice" className="flex flex-col justify-between">
       <div className="flex flex-col">
         <ul className="flex flex-col  gap-2">
           {selectedItems.map((item) => (

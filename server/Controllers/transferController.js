@@ -41,7 +41,7 @@ router.get("/getTransfer", (req, res) => {
       JOIN dispatchtransfer dt ON t.transferID = dt.transferID 
       JOIN product p ON dt.productID = p.productID 
       JOIN generic g ON p.genericID = g.genericID
-      JOIN branch b ON t.branchID = b.branchID`; 
+      JOIN branch b ON t.branchID = b.branchID`;
 
   if (status) {
     query += ` WHERE t.status = ${connection.escape(status)}`;
@@ -149,8 +149,15 @@ router.post("/submitRequest", (req, res) => {
 });
 
 router.post("/updatePending", (req, res) => {
-  const { transferID, status, note } = req.body.data; // Extract data
-connection.query(
+  const { transferID, status, note, products } = req.body; // Extract data
+
+  console.log(req.body);
+  // Validate that products is an array
+  if (!Array.isArray(products)) {
+    return res.status(400).json("Invalid products data");
+  }
+
+  connection.query(
     `SELECT status FROM transfer WHERE transferID = ?`,
     [transferID],
     (err, results) => {
@@ -166,24 +173,83 @@ connection.query(
       const currentStatus = results[0].status;
 
       if (currentStatus === "Pending") {
-        // Check if current status is "Confirmed"
-        const updateQuery = `
-          UPDATE transfer 
-          SET status = ?, confirmdate = CURDATE(), note = ? 
-          WHERE orderID = ?
-        `;
-
-        connection.query(
-          updateQuery,
-          [status, note, transferID],
-          (err, result) => {
-            if (err) {
-              console.error("Error updating MySQL database:", err);
-              return res.status(500).json("Internal Server Error");
-            }
-            return res.status(200).json("Transfer updated successfully");
+        // Begin transaction
+        connection.beginTransaction((err) => {
+          if (err) {
+            console.error("Error starting MySQL transaction:", err);
+            return res.status(500).json("Internal Server Error");
           }
-        );
+
+          // Calculate the total price
+          let totalPrice = 0;
+          products.forEach((product) => {
+            totalPrice += product.unitprice * product.quantity;
+          });
+
+          // Update transfer status, note, and total price
+          const updateTransferQuery = `
+            UPDATE transfer 
+            SET status = ?, confirmdate = CURDATE(), note = ?, price = ?
+            WHERE transferID = ?
+          `;
+
+          connection.query(
+            updateTransferQuery,
+            [status, note, totalPrice, transferID],
+            (err, result) => {
+              if (err) {
+                console.error("Error updating transfer:", err);
+                return connection.rollback(() => {
+                  res.status(500).json("Internal Server Error");
+                });
+              }
+
+              // Update each product's unit price and note
+              const updateProductQueries = products.map((product) => {
+                return new Promise((resolve, reject) => {
+                  const { productID, unitprice, note } = product;
+                  const updateProductQuery = `
+                    UPDATE dispatchtransfer 
+                    SET unitprice = ?
+                    WHERE transferID = ? AND productID = ?
+                  `;
+
+                  connection.query(
+                    updateProductQuery,
+                    [unitprice, transferID, productID],
+                    (err, result) => {
+                      if (err) {
+                        reject(err);
+                      } else {
+                        resolve();
+                      }
+                    }
+                  );
+                });
+              });
+
+              // Execute all product update queries
+              Promise.all(updateProductQueries)
+                .then(() => {
+                  connection.commit((err) => {
+                    if (err) {
+                      console.error("Error committing MySQL transaction:", err);
+                      return connection.rollback(() => {
+                        res.status(500).json("Internal Server Error");
+                      });
+                    }
+                    res.status(200).json("Transfer updated successfully");
+                  });
+                })
+                .catch((err) => {
+                  console.error("Error updating products:", err);
+                  connection.rollback(() => {
+                    res.status(500).json("Internal Server Error");
+                  });
+                });
+            }
+          );
+        });
       } else {
         return res.status(400).json("Transfer status is not Pending");
       }
@@ -191,12 +257,13 @@ connection.query(
   );
 });
 
-router.post("/updateShipped", (req, res) => {
-  const { orderID, status } = req.body;
+router.post("/updateConfirmed", (req, res) => {
+  const { transferID, status, products, branchID } = req.body;
+  console.log(req.body);
 
   connection.query(
-    `SELECT status FROM orders WHERE orderID = ?`,
-    [orderID],
+    `SELECT status FROM transfer WHERE transferID = ?`,
+    [transferID],
     (err, results) => {
       if (err) {
         console.error("Error querying MySQL database:", err);
@@ -209,54 +276,9 @@ router.post("/updateShipped", (req, res) => {
 
       const currentStatus = results[0].status;
 
-      if (currentStatus === "Shipped") {
-        const updateQuery = `
-          UPDATE orders 
-          SET status = ?, receivedate = CURDATE()
-          WHERE orderID = ?
-        `;
-
-        connection.query(updateQuery, [status, orderID], (err, result) => {
-          if (err) {
-            console.error("Error updating MySQL database:", err);
-            return res.status(500).json("Internal Server Error");
-          }
-          return res.status(200).json("Order updated successfully");
-        });
-      } else {
-        return res.status(400).json("Order status is not Confirmed");
-      }
-    }
-  );
-});
-
-router.post("/updateReceived", (req, res) => {
-  const { orderID, status, products } = req.body;
-
-  connection.query(
-    `SELECT status FROM orders WHERE orderID = ?`,
-    [orderID],
-    (err, results) => {
-      if (err) {
-        console.error("Error querying MySQL database:", err);
-        return res.status(500).json("Internal Server Error");
-      }
-
-      if (results.length === 0) {
-        return res.status(404).json("Order not found");
-      }
-
-      const currentStatus = results[0].status;
-
-      if (currentStatus === "Received" || currentStatus === "Shipped") {
-        let updateQuery;
-        let queryParams = [status, orderID];
-
-        if (currentStatus === "Shipped") {
-          updateQuery = `UPDATE orders SET status = ?, receiveDate = CURDATE() WHERE orderID = ?`;
-        } else {
-          updateQuery = `UPDATE orders SET status = ? WHERE orderID = ?`;
-        }
+      if (currentStatus === "Confirmed") {
+        let updateQuery = `UPDATE transfer SET status = ? WHERE transferID = ?`;
+        let queryParams = [status, transferID];
 
         connection.query(updateQuery, queryParams, (err, result) => {
           if (err) {
@@ -268,8 +290,8 @@ router.post("/updateReceived", (req, res) => {
             return new Promise((resolve, reject) => {
               const { productID, quantity, unitprice } = product;
               connection.query(
-                `INSERT INTO inventory (productID, quantity, branchID, unitPrice) VALUES (?, ?, 1, ?)`,
-                [productID, quantity, unitprice],
+                `INSERT INTO inventory (productID, quantity, branchID, unitPrice) VALUES (?, ?, ?, ?)`,
+                [productID, quantity, branchID, unitprice],
                 (err, result) => {
                   if (err) {
                     reject(err);

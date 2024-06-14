@@ -267,7 +267,7 @@ function Supply() {
         </div>
         <div
           className={`flex flex-col p-2 ${
-            Usertype === "Manager" ? "w-7/10" : "w-screen "
+            Usertype === "Manager" ? "w-3/4" : "w-screen "
           }`}
         >
           <OrderTable />

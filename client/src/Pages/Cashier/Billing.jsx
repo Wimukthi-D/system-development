@@ -254,11 +254,11 @@ const Billing = () => {
               </div>
               <div className="flex justify-between">
                 <div>
-                  <strong>Date:</strong> {new Date().toDateString()}
+                  <strong>Date:</strong> Tue Jun 11 2024
                 </div>
-                <div>
-                  <strong>Time:</strong> {new Date().toLocaleTimeString()}
-                </div>
+                {/* <div>
+                  <strong>Time:</strong> {new Date().toLocaleTimeString()}{new Date().toDateString()}
+                </div> */}
               </div>
               <div></div>
             </div>
@@ -269,6 +269,9 @@ const Billing = () => {
                 branchID={decodedToken.branchID}
                 customerID={customerID}
                 cashierID={decodedToken.id}
+                branchName={userBranch}
+                cashierName={UserFirstname}
+                customerName={customer}
               />
             </div>
           </div>

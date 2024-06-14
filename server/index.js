@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const session = require("express-session");
-
 const app = express();
 const jwt = require("jsonwebtoken");
 
@@ -11,13 +10,13 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(
   session({
-    secret: "JWTSecret", // Replace with your own secret
+    secret: "JWTSecret",
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, // Set secure: true if using HTTPS
+    cookie: { secure: false },
   })
 );
-
+app.use(express.static("images"));
 // Importing routes
 
 const userController = require("./Controllers/userController");
@@ -28,6 +27,9 @@ const tokenController = require("./Controllers/tokenController");
 const chartController = require("./Controllers/chartController");
 const orderController = require("./Controllers/orderController");
 const transferController = require("./Controllers/transferController");
+const landingController = require("./Controllers/landingController");
+const mailController = require("./Controllers/mailController");
+const notifyController = require("./Controllers/notifyController");
 // Routes
 
 app.use("/api/user", userController);
@@ -38,6 +40,9 @@ app.use("/api/token", tokenController);
 app.use("/api/chart", chartController);
 app.use("/api/order", orderController);
 app.use("/api/transfer", transferController);
+app.use("/api/landing", landingController);
+app.use("/api/mail", mailController);
+app.use("/api/notify", notifyController);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

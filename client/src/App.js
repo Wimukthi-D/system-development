@@ -19,6 +19,7 @@ import NewCustomerPopup from "./Components/NewCustomerPopup.jsx";
 import Profile from "./Pages/Profile.jsx";
 import OrderHistory from "./Pages/OrderHistory.jsx";
 import Supplier from "./Pages/Supplier/Supplier.jsx";
+import LowStock from "./Pages/LowStock.jsx";
 
 const publicRoutes = ["/", "/login", "/*"];
 
@@ -144,7 +145,7 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
               <Route
                 exact
                 path="/cashier-dashboard/stocks"
-                element={<NewCustomerPopup />}
+                element={<Stocks />}
               />
               <Route
                 exact
@@ -171,6 +172,11 @@ function RenderProtectedRoutes(UserType, isAuthenticated) {
                 exact
                 path="/Staff-dashboard/orders"
                 element={<Orders />}
+              />
+              <Route
+                exact
+                path="/Staff-dashboard/reminders"
+                element={<LowStock />}
               />
             </>
           )}
