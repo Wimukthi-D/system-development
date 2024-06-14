@@ -10,12 +10,20 @@ import {
   Legend,
   Bar,
 } from "recharts";
-import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  Box,
+} from "@mui/material";
 import Navbar from "../../Components/Navbar";
 import { jwtDecode } from "jwt-decode";
 import Pie from "./Pie";
 import BarChart from "./BarChart";
 import TopProducts from "./TopProducts";
+import Reports from "./Reports";
 function Analysis() {
   const [data, setData] = useState([]);
   const [timeRange, setTimeRange] = useState("day");
@@ -230,13 +238,18 @@ function Analysis() {
         </div>
         <div className="flex w-2/5">
           <Pie data={data} />
+          <div className="flex p-5">
+            <Box>
+              <Reports />
+            </Box>
+          </div>
         </div>
       </div>
       <div className="flex gap-2 w-screen h-1/2">
         <div className="flex flex-col w-1/3 p-5 mr-4">
           <TopProducts />
         </div>
-        <div className="flex border flex-col w-2/3">
+        <div className="flex flex-col p-4` w-2/3">
           <BarChart />
         </div>
       </div>

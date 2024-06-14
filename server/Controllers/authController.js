@@ -8,11 +8,11 @@ const router = express.Router();
 
 router.use(bodyParser.json());
 
-router.post('/login', (req, res, next) => {
+router.post('/login', (req, res, next) => { 
     const { username, password } = req.body;
 
     try {
-        connection.query('SELECT * FROM User WHERE username = ?', [username], async (err, rows) => {
+        connection.query('SELECT * FROM User WHERE username = ?', [username], async (err, rows) => { 
             if (err) {
                 console.error('Error querying MySQL database:', err);
                 res.status(500).send('Internal Server Error');

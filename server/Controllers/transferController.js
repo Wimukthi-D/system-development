@@ -277,43 +277,106 @@ router.post("/updateConfirmed", (req, res) => {
       const currentStatus = results[0].status;
 
       if (currentStatus === "Confirmed") {
-        let updateQuery = `UPDATE transfer SET status = ? WHERE transferID = ?`;
-        let queryParams = [status, transferID];
+        // Check if the required quantities are available in the source branch
+        const productChecks = products.map((product) => {
+          return new Promise((resolve, reject) => {
+            const { productID, quantity } = product;
+            connection.query(
+              `SELECT quantity FROM inventory WHERE productID = ? AND branchID = 1`,
+              [productID],
+              (err, results) => {
+                if (err) {
+                  reject(err);
+                } else if (
+                  results.length === 0 ||
+                  results[0].quantity < quantity
+                ) {
+                  resolve(false); // Insufficient quantity
+                } else {
+                  resolve(true); // Sufficient quantity
+                }
+              }
+            );
+          });
+        });
 
-        connection.query(updateQuery, queryParams, (err, result) => {
-          if (err) {
-            console.error("Error updating MySQL database:", err);
-            return res.status(500).json("Internal Server Error");
-          }
-
-          const productUpdates = products.map((product) => {
-            return new Promise((resolve, reject) => {
-              const { productID, quantity, unitprice } = product;
+        Promise.all(productChecks)
+          .then((checks) => {
+            if (checks.includes(false)) {
+              // If any product has insufficient quantity, update the transfer status to "Insufficient amount"
               connection.query(
-                `INSERT INTO inventory (productID, quantity, branchID, unitPrice) VALUES (?, ?, ?, ?)`,
-                [productID, quantity, branchID, unitprice],
+                `UPDATE transfer SET status = 'Insufficient amount' WHERE transferID = ?`,
+                [transferID],
                 (err, result) => {
                   if (err) {
-                    reject(err);
-                  } else {
-                    resolve(result);
+                    console.error("Error updating MySQL database:", err);
+                    return res.status(500).json("Internal Server Error");
                   }
+
+                  return res
+                    .status(400)
+                    .json("Insufficient amount in inventory");
                 }
               );
-            });
-          });
+            } else {
+              // If all products have sufficient quantity, proceed with the update
+              let updateQuery = `UPDATE transfer SET status = ? WHERE transferID = ?`;
+              let queryParams = [status, transferID];
 
-          Promise.all(productUpdates)
-            .then(() => {
-              return res
-                .status(200)
-                .json("Order and inventory updated successfully");
-            })
-            .catch((err) => {
-              console.error("Error updating product quantities:", err);
-              return res.status(500).json("Internal Server Error");
-            });
-        });
+              connection.query(updateQuery, queryParams, (err, result) => {
+                if (err) {
+                  console.error("Error updating MySQL database:", err);
+                  return res.status(500).json("Internal Server Error");
+                }
+
+                const productUpdates = products.map((product) => {
+                  return new Promise((resolve, reject) => {
+                    const { productID, quantity, unitprice } = product;
+                    // Reduce quantity from source branch
+                    connection.query(
+                      `UPDATE inventory SET quantity = quantity - ? WHERE productID = ? AND branchID = 1`,
+                      [quantity, productID, branchID],
+                      (err, result) => {
+                        if (err) {
+                          reject(err);
+                        } else {
+                          // Add quantity to destination branch
+                          connection.query(
+                            `INSERT INTO inventory (productID, quantity, branchID, unitPrice)
+                             VALUES (?, ?, ?, ?)
+                             ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)`,
+                            [productID, quantity, branchID, unitprice],
+                            (err, result) => {
+                              if (err) {
+                                reject(err);
+                              } else {
+                                resolve(result);
+                              }
+                            }
+                          );
+                        }
+                      }
+                    );
+                  });
+                });
+
+                Promise.all(productUpdates)
+                  .then(() => {
+                    return res
+                      .status(200)
+                      .json("Order and inventory updated successfully");
+                  })
+                  .catch((err) => {
+                    console.error("Error updating product quantities:", err);
+                    return res.status(500).json("Internal Server Error");
+                  });
+              });
+            }
+          })
+          .catch((err) => {
+            console.error("Error checking product quantities:", err);
+            return res.status(500).json("Internal Server Error");
+          });
       } else {
         return res.status(400).json("Order status is not valid");
       }

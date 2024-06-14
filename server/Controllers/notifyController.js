@@ -36,23 +36,25 @@ router.get("/lowStock", (req, res) => {
 });
 
 router.get("/expiringStock", (req, res) => {
+  const months = req.query.months ? parseInt(req.query.months, 10) : 3;
   connection.query(
     `
-            SELECT
-            p.drugname,
-            g.genericName,
-            b.branchName,
-            i.expireDate
-            FROM 
-            inventory i 
-            JOIN product p 
-            ON p.productID = i.productID 
-            JOIN
-            branch b 
-            ON b.branchID = i.branchID
-            JOIN generic g 
-            ON g.genericID = p.genericID
-            WHERE i.expireDate < DATE_ADD(CURDATE(), INTERVAL 3 MONTH)`,
+      SELECT
+        p.drugname,
+        g.genericName,
+        b.branchName,
+        i.expireDate
+      FROM 
+        inventory i 
+      JOIN product p 
+        ON p.productID = i.productID 
+      JOIN branch b 
+        ON b.branchID = i.branchID
+      JOIN generic g 
+        ON g.genericID = p.genericID
+      WHERE i.expireDate < DATE_ADD(CURDATE(), INTERVAL ? MONTH)
+    `,
+    [months],
     (err, result) => {
       if (err) {
         console.log(err);
