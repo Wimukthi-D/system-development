@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Primarybutton from "../Components/Primarybutton";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; // Note: Import jwtDecode correctly without curly braces
+import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -52,6 +52,7 @@ const CustomerRegister = ({ open }) => {
   };
 
   const handleChange = (e) => {
+    // Handle input changes
     const { name, value } = e.target;
     let newValue = value;
     if (name === "FirstName" || name === "LastName") {
@@ -76,27 +77,33 @@ const CustomerRegister = ({ open }) => {
   };
 
   const validateForm = () => {
+    // Validate the form data
     const errors = {};
     if (!userData.FirstName.trim()) {
+      // Check if First Name is not empty
       errors.FirstName = "First Name is required";
     }
     if (!userData.LastName.trim()) {
+      // Check if Last Name is not empty
       errors.LastName = "Last Name is required";
     }
     if (!userData.NIC.trim()) {
+      // Check if NIC is not empty
       errors.NIC = "NIC is required";
     } else if (
-      !/^\d{9}[vVxX]?$/.test(userData.NIC) &&
+      !/^\d{9}[vVxX]?$/.test(userData.NIC) && // Check if NIC is valid
       !/^\d{12}$/.test(userData.NIC)
     ) {
       errors.NIC = "Invalid NIC format";
     }
     if (userData.Email.trim() && !/\S+@\S+\.\S+/.test(userData.Email)) {
+      // Check if email is not empty and valid
       errors.Email = "Invalid email address";
     }
     if (!userData.PhoneNumber.trim()) {
       errors.PhoneNumber = "Phone Number is required";
     } else if (!/^\d{10}$/.test(userData.PhoneNumber)) {
+      // Check if phone number is valid
       errors.PhoneNumber = "Invalid phone number";
     }
     if (!userData.Address.trim()) {
@@ -111,6 +118,7 @@ const CustomerRegister = ({ open }) => {
     if (!userData.Password.trim()) {
       errors.Password = "Password is required";
     } else if (userData.Password.length < 8 || userData.Password.length > 15) {
+      // Check if password is between 8 and 15 characters
       errors.Password = "Password must be between 8 and 15 characters";
     }
 
@@ -141,15 +149,15 @@ const CustomerRegister = ({ open }) => {
             icon: "success",
             title: "User Added Successfully!",
             customClass: {
-              popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+              popup: "z-50",
             },
             didOpen: () => {
-              document.querySelector(".swal2-container").style.zIndex = "9999"; // Adjust z-index here
+              document.querySelector(".swal2-container").style.zIndex = "9999";
             },
           }).then(() => {
             handleClose(); // Close the dialog box
             window.location.reload(); // Reload the table data
-            setTableDataChanged((prevState) => !prevState); // <--- Add this line to update the tableDataChanged state
+            setTableDataChanged((prevState) => !prevState);
           });
         } else if (response.status === 400) {
           // Error due to existing fields
@@ -161,11 +169,11 @@ const CustomerRegister = ({ open }) => {
               title: "User Addition Failed",
               text: errors.Username,
               customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+                popup: "z-50",
               },
               didOpen: () => {
                 document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
+                  "9999";
               },
             });
           } else if (errors.Email) {
@@ -174,11 +182,11 @@ const CustomerRegister = ({ open }) => {
               title: "User Addition Failed",
               text: errors.Email,
               customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+                popup: "z-50",
               },
               didOpen: () => {
                 document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
+                  "9999";
               },
             });
           } else if (errors.NIC) {
@@ -187,11 +195,11 @@ const CustomerRegister = ({ open }) => {
               title: "User Addition Failed",
               text: errors.NIC,
               customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+                popup: "z-50",
               },
               didOpen: () => {
                 document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
+                  "9999";
               },
             });
           } else if (errors.PhoneNumber) {
@@ -200,11 +208,11 @@ const CustomerRegister = ({ open }) => {
               title: "User Addition Failed",
               text: errors.PhoneNumber,
               customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+                popup: "z-50",
               },
               didOpen: () => {
                 document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
+                  "9999";
               },
             });
           } else {
@@ -217,11 +225,11 @@ const CustomerRegister = ({ open }) => {
                 .map((error) => `<div>${error}</div>`)
                 .join(""),
               customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+                popup: "z-50",
               },
               didOpen: () => {
                 document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
+                  "9999";
               },
             });
           }
@@ -233,10 +241,10 @@ const CustomerRegister = ({ open }) => {
             title: "User Addition Failed",
             text: "An error occurred while adding the user.",
             customClass: {
-              popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+              popup: "z-50",
             },
             didOpen: () => {
-              document.querySelector(".swal2-container").style.zIndex = "9999"; // Adjust z-index here
+              document.querySelector(".swal2-container").style.zIndex = "9999";
             },
           });
         }
@@ -249,10 +257,10 @@ const CustomerRegister = ({ open }) => {
           title: "User Addition Failed",
           text: errorMessage,
           customClass: {
-            popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+            popup: "z-50",
           },
           didOpen: () => {
-            document.querySelector(".swal2-container").style.zIndex = "9999"; // Adjust z-index here
+            document.querySelector(".swal2-container").style.zIndex = "9999";
           },
         });
       }
@@ -271,7 +279,7 @@ const CustomerRegister = ({ open }) => {
               backdropFilter: "blur(5px)",
               backgroundColor: "rgba(0, 0, 0, 0.5)",
             },
-            invisible: true, // This will prevent backdrop click
+            invisible: true, //prevent backdrop click
           }}
           PaperProps={{
             style: {
@@ -421,6 +429,6 @@ const CustomerRegister = ({ open }) => {
       </div>
     </div>
   );
-}
+};
 
 export default CustomerRegister;

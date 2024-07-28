@@ -7,6 +7,7 @@ const router = express.Router();
 router.use(bodyParser.json());
 
 router.get("/lowStock", (req, res) => {
+  // Get low stock
   connection.query(
     `
         SELECT
@@ -36,6 +37,7 @@ router.get("/lowStock", (req, res) => {
 });
 
 router.get("/expiringStock", (req, res) => {
+  // Get expiring stock
   const months = req.query.months ? parseInt(req.query.months, 10) : 3;
   connection.query(
     `

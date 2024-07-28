@@ -10,27 +10,28 @@ require("dotenv").config();
 router.use(bodyParser.json());
 router.use(cors());
 
-// Configure multer for file uploads
 const storage = multer.diskStorage({
+  // Set storage engine
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Ensure this directory exists
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // Append file extension
+    cb(null, Date.now() + path.extname(file.originalname)); // Set file name
   },
 });
 const upload = multer({ storage: storage });
 
 var transporter = nodemailer.createTransport({
+  // Create transporter object
   service: "gmail",
   auth: {
-    user: "wimu.personal@gmail.com", // use environment variables for security
+    user: "wimu.personal@gmail.com",
     pass: "fnyfhoplkpjarihw",
   },
 });
 
-
 router.post("/send", upload.single("attachment"), async (req, res) => {
+  // Send email
   const { to, subject, text } = req.body.formD;
   const attachment = req.file.filename;
 

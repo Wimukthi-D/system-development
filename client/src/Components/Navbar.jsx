@@ -11,16 +11,9 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import IconButton from "@mui/material/IconButton";
 import Button from "@mui/material/Button";
 import { jwtDecode } from "jwt-decode";
-import Tooltip from "@mui/material/Tooltip";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import Avatar from "@mui/material/Avatar";
 import Logout from "@mui/icons-material/Logout";
-import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-import CustomerRegister from "./CustomerRegister";
 
 function Navbar() {
   const [open, setOpen] = React.useState(false);
@@ -33,16 +26,11 @@ function Navbar() {
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
 
   const [activeRoute, setActiveRoute] = useState(location.pathname);
 
   const handleLogOut = () => {
+    // Function to handle logout
     localStorage.removeItem("token");
     if (window.location.pathname === "/") {
       window.location.reload();
@@ -70,6 +58,7 @@ function Navbar() {
   }, []);
 
   const handleProfile = () => {
+    // Function to handle profile navigation
     switch (Usertype) {
       case "Manager":
         navigate("/manager-dashboard/Profile");
@@ -93,7 +82,9 @@ function Navbar() {
   let buttons = [];
 
   if (token) {
-    switch (Usertype) {
+    switch (
+      Usertype // Switch case to determine the buttons to be displayed based on the user type
+    ) {
       case "Manager":
         buttons = [
           { text: "STOCKS", route: "/manager-dashboard/Stocks" },
@@ -184,43 +175,6 @@ function Navbar() {
           </div>
           <div className="flex text-white text-2xl gap-4 items-center justify-between">
             <div className="flex flex-col justify-center">|</div>
-            {/* <Box sx={{ flexGrow: 0 }}>
-              <Tooltip title="Open settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar alt={FirstName} src={FirstName} />
-                </IconButton>
-              </Tooltip>
-              <Menu
-                sx={{ mt: "45px" }}
-                id="menu-appbar"
-                anchorEl={anchorElUser}
-                anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                open={Boolean(anchorElUser)}
-                onClose={handleCloseUserMenu}
-              >
-                <MenuItem onClick={handleProfile}>
-                  <ListItemIcon>
-                    <ManageAccountsIcon fontSize="small" />
-                  </ListItemIcon>
-                  Profile
-                </MenuItem>
-                <MenuItem onClick={handleLogOut}>
-                  <ListItemIcon>
-                    <Logout fontSize="small" />
-                  </ListItemIcon>
-                  Logout
-                </MenuItem>
-              </Menu>
-            </Box> */}
-
             <Button onClick={handleLogOut} variant="">
               <Logout fontSize="small" />
             </Button>

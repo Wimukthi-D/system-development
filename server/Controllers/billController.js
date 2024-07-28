@@ -7,7 +7,7 @@ const router = express.Router();
 router.use(bodyParser.json());
 
 router.get("/getStock", (req, res) => {
-  // Query the database to get stock data
+  //get all stock data
   connection.query(
     ` SELECT
     p.productID,
@@ -76,6 +76,7 @@ router.post("/submit", (req, res) => {
     let itemsChecked = 0;
 
     items.forEach((item) => {
+      //check if the quantity of the product is available in the inventory
       const { productID, quantity } = item;
       connection.query(
         "SELECT quantity FROM inventory WHERE productID = ? AND branchID = ?",
@@ -109,7 +110,7 @@ router.post("/submit", (req, res) => {
     paymentMethod,
     callback
   ) {
-    const currentDateTime = new Date(); // Assuming you want to insert the current date and time
+    const currentDateTime = new Date();
     connection.query(
       "INSERT INTO sale(`branchID`, `customer_ID`, `userID`, `Date_time`, `paymentmethod`) VALUES (?, ?, ?, ?, ?)",
       [branchID, customerID, cashierID, currentDateTime, paymentMethod],
@@ -129,8 +130,6 @@ router.post("/submit", (req, res) => {
   function handleAfterSaleInsert(saleID, items) {
     // Perform the next query or operations using saleID
     console.log("Performing next operation with saleID:", saleID);
-
-    // Counter for tracking all the items have been inserted
     let itemCount = 0;
 
     // Insert each item into saleproduct table
@@ -147,12 +146,8 @@ router.post("/submit", (req, res) => {
           }
           console.log("Data inserted into saleproduct successfully");
 
-          // Increment the itemCount
           itemCount++;
-
-          // Check if all items have been inserted
           if (itemCount === items.length) {
-            // If all items have been inserted, reduce the inventory
             reduceInventory(items, () => {
               // Once all items are inserted and inventory is reduced, send the success response
               res.status(200).json({
@@ -198,6 +193,7 @@ router.post("/submit", (req, res) => {
 });
 
 router.get("/getBranch", (req, res) => {
+  //get all branch data
   connection.query(`SELECT branchID , branchName FROM branch `, (err, rows) => {
     if (err) {
       console.error("Error querying MySQL database:", err);
@@ -205,12 +201,12 @@ router.get("/getBranch", (req, res) => {
       return;
     }
 
-    // If no error, send the retrieved customer data in the response
     res.status(200).json({ branches: rows });
   });
 });
 
 router.put("/getCustomerID/:FirstName", (req, res) => {
+  //get customerID from customer table using FirstName
   const FirstName = req.params.FirstName;
   connection.query(
     `SELECT customerID FROM customer WHERE userID = (SELECT userID FROM user WHERE FirstName = ? && Usertype = 'Customer')`,
@@ -222,13 +218,13 @@ router.put("/getCustomerID/:FirstName", (req, res) => {
         return;
       }
 
-      // If no error, send the retrieved customer data in the response
       res.status(200).json({ customerID: rows[0].customerID });
     }
   );
 });
 
 router.get("/getHistory", (req, res) => {
+  //get all sales history data
   connection.query(
     `SELECT s.saleID, s.branchID,b.branchName, u.FirstName,DATE_FORMAT(s.date_time, '%Y/%m/%d  @%H:%i') as date_time
 ,sp.quantity,sp.unitprice,p.drugname, g.genericName,s.customer_ID FROM sale s JOIN saleproduct sp ON s.saleID = sp.saleID JOIN product p ON p.productID = sp.productID JOIN generic g ON g.genericID = p.genericID JOIN user u ON u.userID = s.userID JOIN branch b ON b.branchID = u.branchID`,
@@ -238,14 +234,13 @@ router.get("/getHistory", (req, res) => {
         res.status(500).send("Internal Server Error");
         return;
       }
-
-      // If no error, send the retrieved customer data in the response
       res.status(200).json({ history: rows });
     }
   );
 });
 
 router.get("/getCustomer", (req, res) => {
+  //get customer data
   connection.query(
     `SELECT u.FirstName,c.customerID FROM user u JOIN customer c ON u.userID = c.userID WHERE Usertype = 'Customer'`,
     (err, rows) => {
@@ -255,13 +250,13 @@ router.get("/getCustomer", (req, res) => {
         return;
       }
 
-      // If no error, send the retrieved customer data in the response
       res.status(200).json({ customers: rows });
     }
   );
 });
 
 router.get("/getCustomerHistory", (req, res) => {
+  //get customer history of sales
   const userID = req.query.userID;
 
   if (!userID) {
@@ -270,6 +265,7 @@ router.get("/getCustomerHistory", (req, res) => {
   }
 
   connection.query(
+    //get customerID from customer table using userID
     `SELECT customerID FROM customer WHERE userID = ?`,
     [userID],
     (err, customerResult) => {
@@ -287,6 +283,7 @@ router.get("/getCustomerHistory", (req, res) => {
       const customerID = customerResult[0].customerID;
 
       connection.query(
+        //get sales history of customer using customerID
         `SELECT s.saleID, s.branchID, b.branchName, u.FirstName,
                 DATE_FORMAT(s.date_time, '%Y/%m/%d @%H:%i') as date_time,
                 sp.quantity, sp.unitprice, p.drugname, g.genericName, s.customer_ID 

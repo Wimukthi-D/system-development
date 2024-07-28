@@ -47,6 +47,7 @@ JOIN
 });
 
 router.get("/getBranch", (req, res) => {
+  //get all branch data
   connection.query(`SELECT branchID , branchName FROM branch `, (err, rows) => {
     if (err) {
       console.error("Error querying MySQL database:", err);
@@ -117,6 +118,7 @@ router.get("/getRevenue", (req, res) => {
 });
 
 router.get("/getSales", (req, res) => {
+  //get total sales
   connection.query(
     `SELECT
     SUM(sp.quantity * sp.unitprice) as totalSale
@@ -138,6 +140,7 @@ ORDER BY
 });
 
 router.get("/getOrder", (req, res) => {
+  //get total orders
   connection.query(
     `SELECT SUM(price) AS purchase FROM orders WHERE status = 'accepted'`,
     (err, rows) => {
@@ -152,6 +155,7 @@ router.get("/getOrder", (req, res) => {
 });
 
 router.get("/getRemainStock", (req, res) => {
+  //get remaining stock
   connection.query(
     `SELECT SUM(quantity * unitprice) AS expectedTotal FROM inventory`,
     (err, rows) => {
@@ -166,6 +170,7 @@ router.get("/getRemainStock", (req, res) => {
 });
 
 router.get("/getTopSellingCategories", (req, res) => {
+  //get top selling categories
   connection.query(
     `SELECT 
         c.categoryName AS category,
@@ -196,6 +201,7 @@ router.get("/getTopSellingCategories", (req, res) => {
 });
 
 router.get("/getTopSellingProducts", (req, res) => {
+  //get top selling products
   connection.query(
     `SELECT
     p.drugname,

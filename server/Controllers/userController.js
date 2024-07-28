@@ -13,6 +13,7 @@ router.use(bodyParser.json());
 router.use(cors());
 
 router.post("/register", (req, res) => {
+  // Register a new user
   const {
     Username,
     Password,
@@ -100,7 +101,9 @@ router.post("/register", (req, res) => {
                   .slice(0, 19)
                   .replace("T", " ");
 
-                switch (Usertype) {
+                switch (
+                  Usertype // Insert into the respective table based on the user type
+                ) {
                   case "Cashier":
                     connection.query(
                       "INSERT INTO Cashier (`UserId`, `hiredDate`) VALUES (?, ?)",
@@ -172,12 +175,10 @@ router.post("/register", (req, res) => {
                     );
                     break;
                 }
-                res
-                  .status(201)
-                  .json({
-                    message: "User registered successfully",
-                    UserId: result.insertId,
-                  });
+                res.status(201).json({
+                  message: "User registered successfully",
+                  UserId: result.insertId,
+                });
               }
             }
           );
@@ -188,6 +189,7 @@ router.post("/register", (req, res) => {
 });
 
 router.put("/update/:id", async (req, res, next) => {
+  // Update user details
   const userID = req.params.id;
   const {
     Username,
@@ -321,12 +323,9 @@ router.post("/resetpass/:userID", async (req, res) => {
           currentPassword
         );
         if (passwordsMatch) {
-          return res
-            .status(400)
-            .json({
-              message:
-                "New password cannot be the same as the current password",
-            });
+          return res.status(400).json({
+            message: "New password cannot be the same as the current password",
+          });
         }
 
         // Hash the new password
@@ -348,12 +347,10 @@ router.post("/resetpass/:userID", async (req, res) => {
                   .json({ message: "Internal server error" });
               }
 
-              return res
-                .status(200)
-                .json({
-                  message: "Password reset successfully",
-                  UserId: userID,
-                });
+              return res.status(200).json({
+                message: "Password reset successfully",
+                UserId: userID,
+              });
             }
           );
         });
@@ -366,10 +363,11 @@ router.post("/resetpass/:userID", async (req, res) => {
 });
 
 router.delete("/delete/:id", async (req, res) => {
+  // Delete a user
   const userId = req.params.id;
 
   try {
-
+    // Check if the user is a manager
     const [rows] = await connection.query(
       "SELECT Usertype FROM user WHERE userID = ?",
       [userId]
@@ -384,7 +382,6 @@ router.delete("/delete/:id", async (req, res) => {
     if (userType === "Manager") {
       return res.status(403).json({ error: "Manager cannot be deleted" });
     }
-
 
     const [result] = await connection.query(
       "DELETE FROM user WHERE UserID = ?",

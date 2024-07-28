@@ -8,6 +8,7 @@ const router = express.Router();
 router.use(bodyParser.json());
 
 router.get("/getSupplier", (req, res) => {
+  //get all supplier data
   connection.query(
     ` SELECT
     s.supplierID,
@@ -31,6 +32,7 @@ JOIN
 });
 
 router.get("/getSupplierProducts", (req, res) => {
+  //get all products assigned to a supplier
   const supplierID = req.query.supplierID;
   connection.query(
     `SELECT sp.productID, p.drugname,g.genericName FROM supplyproduct sp JOIN product p ON sp.productID = p.productID JOIN generic g ON g.genericID = p.genericID WHERE supplierID = ?`,
@@ -47,6 +49,7 @@ router.get("/getSupplierProducts", (req, res) => {
 });
 
 router.get("/getProduct", (req, res) => {
+  //get all product data
   connection.query(
     `SELECT p.productID,p.drugname,g.genericName  FROM product p JOIN generic g ON p.genericID = g.genericID`,
     (err, rows) => {
@@ -99,6 +102,7 @@ router.post("/Assign", (req, res) => {
 });
 
 router.get("/getOrder", (req, res) => {
+  //get all order data
   const { status } = req.query;
   let query = `
     SELECT 
@@ -138,6 +142,7 @@ router.get("/getOrder", (req, res) => {
     }
 
     const orders = rows.reduce((acc, row) => {
+      //group orders by orderID
       const {
         orderID,
         FirstName,
@@ -157,8 +162,9 @@ router.get("/getOrder", (req, res) => {
         unitprice,
       } = row;
 
-      const orderIndex = acc.findIndex((order) => order.orderID === orderID);
+      const orderIndex = acc.findIndex((order) => order.orderID === orderID); //check if order already exists
       if (orderIndex !== -1) {
+        //if order exists, add product to the products array
         acc[orderIndex].products.push({
           productID,
           drugname,
@@ -167,6 +173,7 @@ router.get("/getOrder", (req, res) => {
           unitprice,
         });
       } else {
+        //if order does not exist, create a new order object
         acc.push({
           orderID,
           FirstName,
@@ -190,6 +197,7 @@ router.get("/getOrder", (req, res) => {
 });
 
 router.get("/getSpecificOrder", (req, res) => {
+  //get all order data for a specific user
   const { status, userID } = req.query;
   let query = `
     SELECT 
@@ -229,6 +237,7 @@ router.get("/getSpecificOrder", (req, res) => {
     }
 
     const orders = rows.reduce((acc, row) => {
+      //group orders by orderID
       const {
         orderID,
         FirstName,
@@ -249,6 +258,7 @@ router.get("/getSpecificOrder", (req, res) => {
 
       const orderIndex = acc.findIndex((order) => order.orderID === orderID);
       if (orderIndex !== -1) {
+        //check if order already exists
         acc[orderIndex].products.push({
           productID,
           drugname,
@@ -257,6 +267,7 @@ router.get("/getSpecificOrder", (req, res) => {
           unitprice,
         });
       } else {
+        //if order does not exist, create a new order object
         acc.push({
           orderID,
           FirstName,
@@ -279,6 +290,7 @@ router.get("/getSpecificOrder", (req, res) => {
 });
 
 router.post("/CreateOrder", (req, res) => {
+  // Create a new order
   const { supplierID, products, additionalInfo, status, approvedate } =
     req.body;
 
@@ -321,7 +333,7 @@ router.post("/CreateOrder", (req, res) => {
         });
       });
 
-      Promise.all(productInserts)
+      Promise.all(productInserts) // Wait for all products to be inserted
         .then(() => {
           res.status(200).json("Order created successfully");
         })
@@ -334,17 +346,20 @@ router.post("/CreateOrder", (req, res) => {
 });
 
 var transporter = nodemailer.createTransport({
+  // Create a transporter object
   service: "gmail",
   auth: {
-    user: "wimu.personal@gmail.com", // use environment variables for security
+    user: "wimu.personal@gmail.com",
     pass: "fnyfhoplkpjarihw",
   },
 });
 
 router.post("/updatePending", (req, res) => {
+  // Update status of an order from "Pending" to "Approved"
   const { orderID, status, userID } = req.body;
 
   connection.query(
+    // Get the email of the user
     `SELECT email FROM user WHERE userID = ?`,
     [userID],
     (err, results) => {
@@ -362,6 +377,7 @@ router.post("/updatePending", (req, res) => {
       const to = results[0].email;
       console.log(to);
       connection.query(
+        // Check if status is "Pending"
         `SELECT status FROM orders WHERE orderID = ?`,
         [orderID],
         (err, results) => {
@@ -386,6 +402,7 @@ router.post("/updatePending", (req, res) => {
             const approvedDate = new Date();
 
             connection.query(
+              // Update the status of the order
               updateQuery,
               [status, approvedDate, orderID],
               (err, result) => {
@@ -424,6 +441,7 @@ router.post("/updatePending", (req, res) => {
 });
 
 router.post("/updateApproved", async (req, res) => {
+  // Update status of an order from "Approved" to "Price Updated"
   const { orderID, status, note, unitPrices, price } = req.body.data;
   connection.query(
     `SELECT status FROM orders WHERE orderID = ?`,
@@ -442,6 +460,7 @@ router.post("/updateApproved", async (req, res) => {
       const currentStatus = results[0].status;
 
       if (currentStatus === "Approved") {
+        // Check if status is "Approved"
         const updateQuery = `
           UPDATE orders
           SET status = ?, note = ?, price = ?
@@ -459,6 +478,7 @@ router.post("/updateApproved", async (req, res) => {
         );
 
         const updateUnitPrices = unitPrices.map((unitPrice) => {
+          // Update unit prices for each product
           return new Promise((resolve, reject) => {
             const { productID, unitprice } = unitPrice;
             connection.query(
@@ -475,7 +495,7 @@ router.post("/updateApproved", async (req, res) => {
           });
         });
 
-        Promise.all(updateUnitPrices)
+        Promise.all(updateUnitPrices) // Wait for all unit prices to be updated
           .then(() => {
             return res.status(200).json("Order updated successfully");
           })
@@ -491,6 +511,7 @@ router.post("/updateApproved", async (req, res) => {
 });
 
 router.post("/updatePrice", (req, res) => {
+  // Update status of an order from "Price Updated" to "Confirmed"
   const { orderID, status } = req.body;
 
   connection.query(
@@ -510,6 +531,7 @@ router.post("/updatePrice", (req, res) => {
       const currentStatus = results[0].status;
 
       if (currentStatus === "Price Updated") {
+        // Check if current status is "Price Updated"ෆ
         const updateQuery = `
           UPDATE orders 
           SET status = ? 
@@ -531,7 +553,7 @@ router.post("/updatePrice", (req, res) => {
 });
 
 router.post("/updateConfirmed", (req, res) => {
-  const { orderID, status, deliverDate, note } = req.body.data; // Extract data
+  const { orderID, status, deliverDate, note } = req.body.data;
 
   if (status !== "Shipped") {
     // Check if status is "Shipped"
@@ -562,6 +584,7 @@ router.post("/updateConfirmed", (req, res) => {
         `;
 
         connection.query(
+          // Update the status of the orderෆ
           updateQuery,
           [status, deliverDate, note, orderID],
           (err, result) => {
@@ -580,6 +603,7 @@ router.post("/updateConfirmed", (req, res) => {
 });
 
 router.post("/updateShipped", (req, res) => {
+  // Update status of an order from "Confirmed" to "Shipped"
   const { orderID, status } = req.body;
 
   connection.query(
@@ -598,6 +622,7 @@ router.post("/updateShipped", (req, res) => {
       const currentStatus = results[0].status;
 
       if (currentStatus === "Shipped") {
+        // Check if current status is "Shipped"
         const updateQuery = `
           UPDATE orders 
           SET status = ?, receivedate = CURDATE()
@@ -619,6 +644,7 @@ router.post("/updateShipped", (req, res) => {
 });
 
 router.post("/updateReceived", (req, res) => {
+  // Update status of an order from "Shipped" to "Received"
   const { orderID, status, products } = req.body;
 
   connection.query(
@@ -637,6 +663,7 @@ router.post("/updateReceived", (req, res) => {
       const currentStatus = results[0].status;
 
       if (currentStatus === "Received" || currentStatus === "Shipped") {
+        // Check if current status is "Shipped" or "Received"
         let updateQuery;
         let queryParams = [status, orderID];
 
@@ -654,6 +681,7 @@ router.post("/updateReceived", (req, res) => {
 
           const productUpdates = products.map((product) => {
             return new Promise((resolve, reject) => {
+              // Update inventory for each product
               const { productID, quantity, unitprice } = product;
               connection.query(
                 `INSERT INTO inventory (productID, quantity, branchID, unitPrice) VALUES (?, ?, 1, ?)`,
@@ -669,7 +697,7 @@ router.post("/updateReceived", (req, res) => {
             });
           });
 
-          Promise.all(productUpdates)
+          Promise.all(productUpdates) // Wait for all products to be updatedෆ
             .then(() => {
               return res
                 .status(200)
@@ -692,7 +720,7 @@ router.post("/debug", (req, res) => {
   const { unitprice, orderID } = req.body;
   res.status(200).json("Received");
 
-  connection.query(
+  connection.query( 
     `UPDATE dispatchsupply SET unitprice = ? WHERE orderID = ?`,
     [unitprice, orderID],
     (err, result) => {

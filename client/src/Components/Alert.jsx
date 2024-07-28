@@ -4,6 +4,7 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 
 function App({ alert, message, severity }) {
+  // Destructuring props to get alert, message, and severity
   const [open, setOpen] = useState(false);
   setOpen(alert);
   console.log(alert, message, severity);

@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.use(bodyParser.json());
 
-router.get("/getProduct", (req, res) => {
+router.get("/getProduct", (req, res) => {           //get product details
   connection.query(
     `SELECT p.productID,p.drugname,g.genericName  FROM product p JOIN generic g ON p.genericID = g.genericID`,
     (err, rows) => {
@@ -20,7 +20,7 @@ router.get("/getProduct", (req, res) => {
   );
 });
 
-router.get("/getTransfer", (req, res) => {
+router.get("/getTransfer", (req, res) => {        //get transfer details
   const { status } = req.query;
   let query = `
       SELECT 
@@ -103,10 +103,10 @@ router.get("/getTransfer", (req, res) => {
   });
 });
 
-router.post("/submitRequest", (req, res) => {
+router.post("/submitRequest", (req, res) => {                  //submit transfer request
   const { branchID, products, note, status } = req.body;
 
-  // Insert the transfer
+                                                         // Insert into transfer
   connection.query(
     `INSERT INTO transfer (branchID, orderdate,note, status) VALUES (?, CURDATE(),?,?)`,
     [branchID, note, status],
@@ -117,9 +117,9 @@ router.post("/submitRequest", (req, res) => {
         return;
       }
 
-      const transferID = result.insertId;
-      // Insert each product into dispatchsupply
-      const productInserts = products.map((product) => {
+      const transferID = result.insertId;   
+                                                                  
+      const productInserts = products.map((product) => {                // Insert each product into dispatchsupply
         return new Promise((resolve, reject) => {
           const { productID, quantity } = product;
           connection.query(
@@ -149,11 +149,11 @@ router.post("/submitRequest", (req, res) => {
 });
 
 router.post("/updatePending", (req, res) => {
-  const { transferID, status, note, products } = req.body; // Extract data
+  const { transferID, status, note, products } = req.body;      // Extract data
 
   console.log(req.body);
-  // Validate that products is an array
-  if (!Array.isArray(products)) {
+ 
+  if (!Array.isArray(products)) {          // Validate that products is an array
     return res.status(400).json("Invalid products data");
   }
 
@@ -257,7 +257,7 @@ router.post("/updatePending", (req, res) => {
   );
 });
 
-router.post("/updateConfirmed", (req, res) => {
+router.post("/updateConfirmed", (req, res) => {                   //update confirmed transfer
   const { transferID, status, products, branchID } = req.body;
   console.log(req.body);
 
@@ -277,8 +277,8 @@ router.post("/updateConfirmed", (req, res) => {
       const currentStatus = results[0].status;
 
       if (currentStatus === "Confirmed") {
-        // Check if the required quantities are available in the source branch
-        const productChecks = products.map((product) => {
+        
+        const productChecks = products.map((product) => {        // Check if the required quantities are available in the source branch
           return new Promise((resolve, reject) => {
             const { productID, quantity } = product;
             connection.query(
@@ -291,9 +291,9 @@ router.post("/updateConfirmed", (req, res) => {
                   results.length === 0 ||
                   results[0].quantity < quantity
                 ) {
-                  resolve(false); // Insufficient quantity
+                  resolve(false);         // Insufficient quantity
                 } else {
-                  resolve(true); // Sufficient quantity
+                  resolve(true);              // Sufficient quantity
                 }
               }
             );
@@ -384,7 +384,7 @@ router.post("/updateConfirmed", (req, res) => {
   );
 });
 
-router.post("/debug", (req, res) => {
+router.post("/debug", (req, res) => {           //update unit price upon receiving
   console.log(req.body);
   const { unitprice, orderID } = req.body;
   res.status(200).json("Received");

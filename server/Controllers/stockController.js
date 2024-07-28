@@ -7,6 +7,7 @@ const path = require("path");
 var nodemailer = require("nodemailer");
 
 var transporter = nodemailer.createTransport({
+  // Create transporter object
   service: "gmail",
   auth: {
     user: "wimu.personal@gmail.com",
@@ -22,12 +23,13 @@ var mailOptions = {
 };
 
 transporter.sendMail(mailOptions, function (error, info) {
+  // Send email
   if (error) {
     console.log(error);
   } else {
     console.log("Email sent: " + info.response);
   }
-}); 
+});
 
 const router = express.Router();
 
@@ -36,6 +38,7 @@ router.use(bodyParser.json());
 router.use(cors());
 
 const Storage = multer.diskStorage({
+  // Set storage engine
   destination: (req, file, cb) => {
     cb(null, "./images/");
   },
@@ -47,7 +50,7 @@ const Storage = multer.diskStorage({
 const upload = multer({ storage: Storage });
 
 router.get("/getStock", (req, res) => {
-  // Query the database to get stock data
+  //get stock data
   connection.query(
     ` SELECT
     p.productID, 
@@ -88,6 +91,7 @@ JOIN
 });
 
 router.post("/addStock", async (req, res) => {
+  // Add stock to the inventory
   const { productID, BranchID, ExpireDate, stockDate, Quantity, unitprice } =
     req.body;
 
@@ -109,26 +113,21 @@ router.post("/addStock", async (req, res) => {
 });
 
 router.put("/updateStock/:id", async (req, res) => {
+  // Update stock in the inventory
   const stockId = req.params.id;
-  const { productID, BranchID, ExpireDate, stockDate, Quantity, UnitPrice } =
+  const { productID, BranchID, ExpireDate, StockDate, Quantity, UnitPrice } =
     req.body;
+
+  console.log("StockDate", StockDate);
 
   try {
     connection.query(
-      "UPDATE inventory SET productID = ?, branchID = ?, expireDate = ?, stockDate = ?, quantity = ?, unitPrice = ? WHERE stockID = ?",
-      [
-        productID,
-        BranchID,
-        ExpireDate,
-        stockDate,
-        Quantity,
-        UnitPrice,
-        stockId,
-      ],
+      "UPDATE inventory SET branchID = ?, expireDate = ?, stockDate = ?, quantity = ?, unitPrice = ? WHERE stockID = ?",
+      [BranchID, ExpireDate, StockDate, Quantity, UnitPrice, stockId],
       (err, result) => {
         if (err) {
           console.error("Error updating Item:", err);
-          res.status(500).send("Internal Server Error");
+          res.status(500).send("Inter nal Server Error");
           return;
         }
 
@@ -204,11 +203,13 @@ router.get("/getGeneric", (req, res) => {
 });
 
 router.post("/upload", upload.single("image"), (req, res) => {
+  // Upload image
   console.log("Request ---", req.file.filename);
   res.status(500).json({ image: req.file.filename });
 });
 
 router.post("/addProduct", async (req, res) => {
+  // Add product
   const {
     DrugName,
     GenericName,
@@ -334,6 +335,7 @@ router.post("/addProduct", async (req, res) => {
 });
 
 router.put("/updateProduct/:id", async (req, res) => {
+  // Update product
   const productId = req.params.id;
   const {
     drugName,
@@ -465,7 +467,7 @@ router.put("/updateProduct/:id", async (req, res) => {
       .json({ error: "An error occurred while updating the product" });
   }
 });
- 
+
 router.delete("/deleteProduct/:id", async (req, res) => {
   const productID = req.params.id;
 

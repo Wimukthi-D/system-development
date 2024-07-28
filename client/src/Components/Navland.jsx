@@ -3,7 +3,7 @@ import Logo from "../assets/DM logo.png";
 import Primarybutton from "../Components/Primarybutton";
 import SecondaryButton from "../Components/SecondaryButton";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; // Note: Import jwtDecode correctly without curly braces
+import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -165,12 +165,12 @@ function Navland() {
               popup: "z-50", // Apply Tailwind CSS class to adjust z-index
             },
             didOpen: () => {
-              document.querySelector(".swal2-container").style.zIndex = "9999"; // Adjust z-index here
+              document.querySelector(".swal2-container").style.zIndex = "9999";
             },
           }).then(() => {
-            handleClose(); // Close the dialog box
-            window.location.reload(); // Reload the table data
-            setTableDataChanged((prevState) => !prevState); // <--- Add this line to update the tableDataChanged state
+            handleClose();
+            window.location.reload();
+            setTableDataChanged((prevState) => !prevState);
           });
         } else if (response.status === 400) {
           // Error due to existing fields
@@ -182,11 +182,11 @@ function Navland() {
               title: "User Addition Failed",
               text: errors.Username,
               customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+                popup: "z-50",
               },
               didOpen: () => {
                 document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
+                  "9999";
               },
             });
           } else if (errors.Email) {
@@ -195,11 +195,11 @@ function Navland() {
               title: "User Addition Failed",
               text: errors.Email,
               customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+                popup: "z-50",
               },
               didOpen: () => {
                 document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
+                  "9999";
               },
             });
           } else if (errors.NIC) {
@@ -208,11 +208,11 @@ function Navland() {
               title: "User Addition Failed",
               text: errors.NIC,
               customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+                popup: "z-50",
               },
               didOpen: () => {
                 document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
+                  "9999";
               },
             });
           } else if (errors.PhoneNumber) {
@@ -221,11 +221,11 @@ function Navland() {
               title: "User Addition Failed",
               text: errors.PhoneNumber,
               customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+                popup: "z-50",
               },
               didOpen: () => {
                 document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
+                  "9999";
               },
             });
           } else {
@@ -238,11 +238,11 @@ function Navland() {
                 .map((error) => `<div>${error}</div>`)
                 .join(""),
               customClass: {
-                popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+                popup: "z-50",
               },
               didOpen: () => {
                 document.querySelector(".swal2-container").style.zIndex =
-                  "9999"; // Adjust z-index here
+                  "9999";
               },
             });
           }
@@ -254,10 +254,10 @@ function Navland() {
             title: "User Addition Failed",
             text: "An error occurred while adding the user.",
             customClass: {
-              popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+              popup: "z-50",
             },
             didOpen: () => {
-              document.querySelector(".swal2-container").style.zIndex = "9999"; // Adjust z-index here
+              document.querySelector(".swal2-container").style.zIndex = "9999";
             },
           });
         }
@@ -270,10 +270,10 @@ function Navland() {
           title: "User Addition Failed",
           text: errorMessage,
           customClass: {
-            popup: "z-50", // Apply Tailwind CSS class to adjust z-index
+            popup: "z-50",
           },
           didOpen: () => {
-            document.querySelector(".swal2-container").style.zIndex = "9999"; // Adjust z-index here
+            document.querySelector(".swal2-container").style.zIndex = "9999";
           },
         });
       }
@@ -309,11 +309,11 @@ function Navland() {
               backdropFilter: "blur(5px)",
               backgroundColor: "rgba(0, 0, 0, 0.5)",
             },
-            invisible: true, // This will prevent backdrop click
+            invisible: true,
           }}
           PaperProps={{
             style: {
-              borderRadius: 20, // Adjust the value to your desired roundness
+              borderRadius: 20,
             },
           }}
         >

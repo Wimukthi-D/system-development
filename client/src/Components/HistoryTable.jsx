@@ -57,15 +57,6 @@ const HistoryTable = () => {
     fetchCustomers();
   }, []);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
   const fetchHistory = async () => {
     try {
       const response = await axios.get(
@@ -89,6 +80,7 @@ const HistoryTable = () => {
   };
 
   const fetchCustomers = async () => {
+    // Fetch customer data
     try {
       const response = await axios.get(
         "http://localhost:3001/api/bill/getCustomer"
@@ -107,6 +99,7 @@ const HistoryTable = () => {
   };
 
   const groupBy = (array, key) => {
+    // Group the data by saleID
     return array.reduce((result, currentValue) => {
       (result[currentValue[key]] = result[currentValue[key]] || []).push(
         currentValue
@@ -116,21 +109,15 @@ const HistoryTable = () => {
   };
 
   const handleRequestSort = (property) => {
+    //  Sort the table by the given property
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
-
-  const handleBranchChange = (event) => {
-    setBranchFilter(event.target.value);
-  };
-
   const filteredHistory = () => {
     return Object.keys(history).filter((saleID) => {
+      // Filter the history data based on search query, branch filter, and category filter
       const rows = history[saleID];
       const firstRow = rows[0];
 
@@ -155,6 +142,7 @@ const HistoryTable = () => {
   };
 
   const sortedHistory = (filteredRows) => {
+    // Sort the filtered rows
     const comparator = (a, b) => {
       if (orderBy === "saleID" || orderBy === "total") {
         const valueA = orderBy === "total" ? history[a].total : parseInt(a, 10);
@@ -178,6 +166,7 @@ const HistoryTable = () => {
   };
 
   const toggleExpandAll = () => {
+    // Expand or collapse all rows
     if (isAllExpanded) {
       setExpandedRows([]);
     } else {

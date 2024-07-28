@@ -240,13 +240,7 @@ function Products() {
         <Navbar />
         <div className="flex  w-screen overflow-y-auto">
           <div className="flex-col w-full">
-            <div className="flex justify-between mt-10 mx-10">
-              <div className="flex">
-                <div className="bg-white border p-1 flex items-center rounded-xl">
-                  <InputField placeholder="Search" />
-                  <SearchIcon className="mx-2 opacity-50 rounded-full hover:scale-110 transition cursor-pointer" />
-                </div>
-              </div>
+            <div className="flex justify-end mt-10 mx-10">
               <div>
                 <Primarybutton
                   text="Add Product"

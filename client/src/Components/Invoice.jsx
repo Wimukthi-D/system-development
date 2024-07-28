@@ -26,6 +26,7 @@ const theme = createTheme({
 });
 
 const Invoice = ({
+  // Destructure the props passed to the component
   selectedItems,
   setSelectedItems,
   branchID,
@@ -46,6 +47,7 @@ const Invoice = ({
   console.log("selected passed", selectedItems);
 
   const handleCountChange = (event, stockID, increment = 0) => {
+    // Handle the change in the quantity of an item in the invoice
     const newCount =
       parseInt(event.target ? event.target.value : event, 10) + increment;
     if (!isNaN(newCount) && newCount > 0) {
@@ -58,12 +60,14 @@ const Invoice = ({
   };
 
   const handleRemoveItem = (stockID) => {
+    // Remove an item from the invoice
     setSelectedItems((prevItems) =>
       prevItems.filter((item) => item.stockID !== stockID)
     );
   };
 
   const calculateTotal = () => {
+    // Calculate the total cost of the items in the invoice
     return selectedItems.reduce(
       (acc, item) => acc + item.unitprice * item.count,
       0
@@ -71,16 +75,19 @@ const Invoice = ({
   };
 
   const calculateGrandTotal = () => {
+    // Calculate the grand total after applying the discount
     const total = calculateTotal();
     return total - (total * discount) / 100;
   };
 
   const handleCardPayment = () => {
+    // Handle card payment
     setPaymentMethod("card");
     setAmountPaid(calculateGrandTotal());
   };
 
   const handleContinue = () => {
+    // Handle the continue button click
     const data = selectedItems.map((item) => ({
       productID: item.productID,
       quantity: item.count,
@@ -120,7 +127,7 @@ const Invoice = ({
         return response.json();
       })
       .then((data) => {
-        console.log("Sale ID:", data.saleID); // Access the saleID here
+        console.log("Sale ID:", data.saleID); // Access the saleID
       })
       .catch((error) => {
         console.error("Error submitting invoice", error);
@@ -137,13 +144,13 @@ const Invoice = ({
   };
 
   const generatePDF = async () => {
+    // Generate the PDF invoice
     const input = document.getElementById("invoice");
     const canvas = await html2canvas(input);
     const imgData = canvas.toDataURL("image/png", 1.0); // Capture the invoice as an image
     const pdf = new jsPDF();
     const date = new Date().toLocaleString();
 
-    // Create a promise to handle image loading
     const loadImage = (src) => {
       return new Promise((resolve, reject) => {
         const img = new Image();
@@ -154,11 +161,9 @@ const Invoice = ({
     };
 
     try {
-      const logo = await loadImage(Header); // Path to your logo
+      const logo = await loadImage(Header);
 
-      // Add logo to the PDF
-      pdf.addImage(logo, "PNG", 0, 0, 210, 45); // Adjust the position and size as needed
-
+      pdf.addImage(logo, "PNG", 0, 0, 210, 45);
       // Set font size for the header
       pdf.setFontSize(12);
       pdf.text(`Date & Time: ${date}`, 10, 45);

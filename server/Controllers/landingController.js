@@ -7,6 +7,7 @@ const router = express.Router();
 router.use(bodyParser.json());
 
 router.get("/getProduct", (req, res) => {
+  //get all product data
   const { branches, inStock, category, page = 1, limit = 8 } = req.query;
   const offset = (page - 1) * limit;
 
@@ -63,8 +64,8 @@ router.get("/getProduct", (req, res) => {
   });
 });
 
-// Route to get branches
 router.get("/getBranches", (req, res) => {
+  //get all branch data
   connection.query("SELECT DISTINCT branchName FROM branch", (err, rows) => {
     if (err) {
       console.error("Error querying MySQL database:", err);
@@ -75,8 +76,8 @@ router.get("/getBranches", (req, res) => {
   });
 });
 
-// Route to get categories
 router.get("/getCategories", (req, res) => {
+  //get all category data
   connection.query(
     "SELECT DISTINCT categoryName FROM category",
     (err, rows) => {
