@@ -427,6 +427,7 @@ function Row({ row, isOpen, onExpand }) {
                       onChange={handleChange}
                       error={Boolean(errors.ExpireDate)}
                       helperText={errors.ExpireDate}
+                      inputProps={{ min: new Date().toISOString().split("T")[0] }}
                     />
                     <TextField
                       variant="standard"
@@ -437,6 +438,7 @@ function Row({ row, isOpen, onExpand }) {
                       onChange={handleChange}
                       error={Boolean(errors.StockDate)}
                       helperText={errors.StockDate}
+                      inputProps={{ min: new Date().toISOString().split("T")[0] }}
                     />
                     <TextField
                       variant="standard"
